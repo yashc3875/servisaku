@@ -1,7 +1,7 @@
 import { Download } from 'lucide-react';
 import {
   ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  Legend, AreaChart, Area
+  Legend
 } from 'recharts';
 import { buildFinancialSummary, exportToCSV } from '@/lib/analyticsEngine';
 

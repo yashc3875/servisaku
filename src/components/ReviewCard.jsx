@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Star, ThumbsUp, Flag, MoreVertical, Edit2 } from 'lucide-react';
+import { Star, ThumbsUp, Flag, Edit2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { cn } from '@/lib/utils';
 import moment from 'moment';

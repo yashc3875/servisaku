@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Shield, Lock, CheckCircle2, XCircle, RefreshCw, Info } from 'lucide-react';
+import { ArrowLeft, Shield, Lock, CheckCircle2, XCircle, RefreshCw } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { PAYMENT_METHODS, calcPriceBreakdown, createEscrowEntry, formatRM } from '@/lib/paymentEngine';
 import { generateIdempotencyKey, markPaymentSubmitted, clearPaymentRecord, auditLog } from '@/lib/security';

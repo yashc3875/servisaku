@@ -34,7 +34,7 @@ if (import.meta.env.DEV) {
       addons: ADDONS_BY_CATEGORY,
     });
   } catch (err) {
-    // eslint-disable-next-line no-console
+     
     console.error('[catalog] validation failed', err);
   }
 }

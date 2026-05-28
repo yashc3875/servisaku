@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Search, RefreshCw, AlertTriangle, CheckCircle2, Clock, Filter } from 'lucide-react';
+import { Search, RefreshCw, AlertTriangle } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';
-import { Button } from '@/components/ui/button';
 import { STATUS_TRANSITIONS, formatBookingRef } from '@/lib/bookingEngine';
 import { toast } from 'sonner';
 import moment from 'moment';

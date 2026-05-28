@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft, Megaphone, Send, Users, BarChart3, Play, Pause,
-  Plus, CheckCircle2, AlertTriangle, Clock, Globe, RefreshCw,
+  ArrowLeft, Megaphone, Send, Users,
+  Plus, CheckCircle2, RefreshCw,
   Zap, Bell, Mail, MessageSquare, Smartphone
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';

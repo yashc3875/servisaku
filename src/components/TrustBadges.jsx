@@ -1,4 +1,4 @@
-import { Shield, Star, Award, CheckCircle2, Clock, Briefcase } from 'lucide-react';
+import { Shield, Star, Award, CheckCircle2, Briefcase } from 'lucide-react';
 import { getBadge } from '@/lib/qualityEngine';
 import { cn } from '@/lib/utils';
 

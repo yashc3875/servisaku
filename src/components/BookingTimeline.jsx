@@ -1,6 +1,5 @@
 import { STATUS_META } from '@/lib/bookingEngine';
 import { CheckCircle2, Circle } from 'lucide-react';
-import moment from 'moment';
 
 const ORDERED_STATUSES = ['pending', 'assigned', 'accepted', 'en_route', 'arrived', 'started', 'completed'];
 

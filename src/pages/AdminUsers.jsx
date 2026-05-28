@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Users, ShieldCheck, ShieldX, Search, Filter, CheckCircle2, XCircle, Clock, Eye } from 'lucide-react';
+import { Users, Search, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import moment from 'moment';

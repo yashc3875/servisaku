@@ -1,5 +1,4 @@
-import { Star, TrendingUp, Download } from 'lucide-react';
-import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip } from 'recharts';
+import { Star, Download } from 'lucide-react';
 import { buildPartnerPerformance, exportToCSV } from '@/lib/analyticsEngine';
 
 export default function PartnerAnalytics({ bookings, users, reviews }) {

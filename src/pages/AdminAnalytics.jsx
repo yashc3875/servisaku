@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, RefreshCw, Download, BarChart3, DollarSign, Users, UserCheck } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
 import { loadAnalyticsData, computeKPIs, filterByRange, exportToCSV } from '@/lib/analyticsEngine';
 import KPIStrip from '@/components/analytics/KPIStrip';
 import BookingAnalytics from '@/components/analytics/BookingAnalytics';

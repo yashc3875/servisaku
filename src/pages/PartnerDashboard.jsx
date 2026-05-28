@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import {
-  TrendingUp, Clock, CheckCircle2, DollarSign, MapPin,
+import { Clock, DollarSign, MapPin,
   ToggleLeft, ToggleRight, Star, Calendar, ChevronRight,
 } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';

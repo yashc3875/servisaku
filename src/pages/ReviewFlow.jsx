@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Star, Camera, X, ChevronRight, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import { CONSUMER_REVIEW_TAGS, PARTNER_REVIEW_TAGS, checkAndCreateTicket } from '@/lib/qualityEngine';
+import { CONSUMER_REVIEW_TAGS, checkAndCreateTicket } from '@/lib/qualityEngine';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, AlertTriangle, Star, Shield, CheckCircle2, XCircle,
-  Eye, MessageSquare, Ban, RefreshCw, TrendingDown, Award, Filter
+  Eye, MessageSquare, Ban, RefreshCw, TrendingDown
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import {
@@ -10,8 +10,6 @@ import {
   detectSuspiciousReviews, getRatingDistribution
 } from '@/lib/qualityEngine';
 import { QualityBadge, TopRatedBadge } from '@/components/TrustBadges';
-import RatingBreakdown from '@/components/RatingBreakdown';
-import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import moment from 'moment';
 

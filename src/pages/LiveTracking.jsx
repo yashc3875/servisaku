@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Phone, MessageSquare, X, ChevronDown, Navigation, AlertCircle } from 'lucide-react';
+import { Phone, MessageSquare, X, Navigation } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { useRealtimeBooking, usePartnerLocation } from '@/hooks/useRealtimeBooking';

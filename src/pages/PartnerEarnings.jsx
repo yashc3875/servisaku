@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, TrendingUp, Clock, CheckCircle2, Download, Calendar, ChevronDown } from 'lucide-react';
+import { ArrowLeft, TrendingUp, CheckCircle2, Download, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { formatRM, calcPartnerPayout } from '@/lib/paymentEngine';

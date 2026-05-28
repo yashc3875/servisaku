@@ -2,12 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import {
-  ArrowLeft, DollarSign, Shield, RefreshCw, AlertTriangle,
-  CheckCircle2, Clock, TrendingUp, Download, Filter
+  ArrowLeft, AlertTriangle
 } from 'lucide-react';
 import { formatRM } from '@/lib/paymentEngine';
-import { Button } from '@/components/ui/button';
-import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
 import moment from 'moment';
 

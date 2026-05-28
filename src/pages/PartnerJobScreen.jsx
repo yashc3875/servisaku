@@ -2,12 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Navigation, Phone, MessageSquare, Camera, CheckCircle2,
-  AlertTriangle, Clock, MapPin, ArrowLeft, X, Upload
+  AlertTriangle, Clock, MapPin, ArrowLeft, X
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useRealtimeBooking } from '@/hooks/useRealtimeBooking';
 import { startGPSTracking, stopGPSTracking, sendSystemMessage, changeBookingStatus } from '@/lib/realtimeService';
-import { STATUS_TRANSITIONS, STATUS_META } from '@/lib/bookingEngine';
+import { STATUS_META } from '@/lib/bookingEngine';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import moment from 'moment';

@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import {
   Users, DollarSign, TrendingUp, AlertTriangle, Clock,
   ArrowUpRight, BarChart3, Shield, ChevronRight, Activity,
-  Award, Megaphone, ArrowRight,
+  Award, Megaphone,
 } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';

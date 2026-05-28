@@ -1,7 +1,7 @@
 import { Download } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  Cell, PieChart, Pie, Legend
+  Cell
 } from 'recharts';
 import { buildBookingTrend, buildCategoryPerformance, buildPeakHours, exportToCSV } from '@/lib/analyticsEngine';
 

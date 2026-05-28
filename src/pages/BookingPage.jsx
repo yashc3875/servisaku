@@ -5,7 +5,6 @@ import { base44 } from '@/api/base44Client';
 import { SERVICES, CITIES, TIME_SLOTS } from '@/lib/services';
 import PartnerCard from '../components/PartnerCard';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
 
 const PACKAGES = [
   { name: 'Basic', multiplier: 1 },

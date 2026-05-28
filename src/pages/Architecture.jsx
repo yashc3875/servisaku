@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Database, Globe, Lock, Layers, Zap, ArrowRight, Server, Shield, CreditCard, MessageSquare } from 'lucide-react';
+import { Database, Globe, Lock, Layers, Zap, ArrowRight, Server } from 'lucide-react';
 
 const TABS = [
   { id: 'schema', label: 'DB Schema', icon: Database },
