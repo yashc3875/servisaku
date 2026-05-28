@@ -1,9 +1,9 @@
 // tailwind.config.js
 import animate from 'tailwindcss-animate';
 
-// Optional plugin — wrap in try so build does not break if not installed.
-let containerQueries = null;
-try { containerQueries = (await import('@tailwindcss/container-queries')).default; } catch { /* noop */ }
+// Note: @tailwindcss/container-queries can be added as a static import once
+// installed as a hard dependency. Tailwind's jiti loader does not support
+// top-level await, so we cannot do a dynamic optional import here.
 
 const px = (v) => `${v / 16}rem`;
 
@@ -180,5 +180,5 @@ export default {
       },
     },
   },
-  plugins: [animate, containerQueries].filter(Boolean),
+  plugins: [animate],
 };
