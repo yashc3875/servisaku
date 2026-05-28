@@ -1,34 +1,34 @@
-import * as React from "react"
-import { cva } from "class-variance-authority";
-
-import { cn } from "@/lib/utils"
+import * as React from 'react';
+import { cva } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-micro font-semibold whitespace-nowrap',
   {
     variants: {
-      variant: {
-        default:
-          "border-transparent bg-primary text-primary-foreground shadow hover:bg-primary/80",
-        secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        destructive:
-          "border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80",
-        outline: "text-foreground",
+      tone: {
+        neutral: 'bg-raised text-ink',
+        brand:   'bg-brand-tint text-brand-ink',
+        accent:  'bg-accent-tint text-accent',
+        success: 'bg-success-tint text-success',
+        warning: 'bg-warning-tint text-warning',
+        danger:  'bg-danger-tint  text-danger',
+        info:    'bg-info-tint    text-info',
+        outline: 'hairline text-ink',
+        /* shadcn back-compat */
+        default:     'bg-brand-tint text-brand-ink',
+        secondary:   'bg-raised text-ink',
+        destructive: 'bg-danger-tint text-danger',
       },
     },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
-)
+    defaultVariants: { tone: 'neutral' },
+  },
+);
 
-function Badge({
-  className,
-  variant,
-  ...props
-}) {
-  return (<div className={cn(badgeVariants({ variant }), className)} {...props} />);
+function Badge({ className, tone, variant, ...props }) {
+  // accept legacy `variant` prop transparently
+  const t = tone ?? variant;
+  return <div className={cn(badgeVariants({ tone: t }), className)} {...props} />;
 }
 
-export { Badge, badgeVariants }
+export { Badge, badgeVariants };
