@@ -1,0 +1,110 @@
+{
+  "name": "Payment",
+  "type": "object",
+  "properties": {
+    "booking_id": {
+      "type": "string",
+      "title": "Booking ID"
+    },
+    "consumer_email": {
+      "type": "string",
+      "title": "Consumer"
+    },
+    "amount": {
+      "type": "number",
+      "title": "Amount (RM)"
+    },
+    "currency": {
+      "type": "string",
+      "default": "MYR",
+      "title": "Currency"
+    },
+    "method": {
+      "type": "string",
+      "enum": [
+        "card",
+        "fpx",
+        "ewallet_tng",
+        "ewallet_boost",
+        "ewallet_grabpay",
+        "cash"
+      ],
+      "title": "Payment Method"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "paid",
+        "refunded",
+        "failed",
+        "escrowed"
+      ],
+      "default": "pending",
+      "title": "Status"
+    },
+    "gateway": {
+      "type": "string",
+      "enum": [
+        "stripe",
+        "billplz",
+        "ipay88",
+        "manual"
+      ],
+      "title": "Payment Gateway"
+    },
+    "gateway_transaction_id": {
+      "type": "string",
+      "title": "Gateway Transaction ID"
+    },
+    "gateway_reference": {
+      "type": "string",
+      "title": "Gateway Reference"
+    },
+    "gateway_response": {
+      "type": "string",
+      "title": "Gateway Response JSON"
+    },
+    "platform_fee": {
+      "type": "number",
+      "title": "Platform Fee (RM)"
+    },
+    "partner_payout": {
+      "type": "number",
+      "title": "Partner Payout (RM)"
+    },
+    "payout_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "scheduled",
+        "paid",
+        "failed"
+      ],
+      "default": "pending",
+      "title": "Payout Status"
+    },
+    "payout_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Payout Date"
+    },
+    "refund_reason": {
+      "type": "string",
+      "title": "Refund Reason"
+    },
+    "refunded_at": {
+      "type": "string",
+      "title": "Refunded At"
+    },
+    "receipt_url": {
+      "type": "string",
+      "title": "Receipt URL"
+    }
+  },
+  "required": [
+    "booking_id",
+    "amount",
+    "method"
+  ]
+}

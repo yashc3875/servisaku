@@ -1,0 +1,55 @@
+{
+  "name": "DeviceToken",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User"
+    },
+    "token": {
+      "type": "string",
+      "title": "FCM Token"
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "web",
+        "ios",
+        "android"
+      ],
+      "default": "web",
+      "title": "Platform"
+    },
+    "device_name": {
+      "type": "string",
+      "title": "Device Name"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "title": "Active"
+    },
+    "last_used": {
+      "type": "string",
+      "title": "Last Used"
+    },
+    "badge_count": {
+      "type": "integer",
+      "default": 0,
+      "title": "Badge Count"
+    },
+    "language": {
+      "type": "string",
+      "enum": [
+        "en",
+        "bm"
+      ],
+      "default": "en",
+      "title": "Language"
+    }
+  },
+  "required": [
+    "user_email",
+    "token"
+  ]
+}

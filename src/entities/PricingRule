@@ -1,0 +1,57 @@
+{
+  "name": "PricingRule",
+  "type": "object",
+  "properties": {
+    "service_type": {
+      "type": "string",
+      "enum": [
+        "Home Cleaning",
+        "Plumbing",
+        "Electrical",
+        "AC Servicing",
+        "Painting",
+        "Pest Control"
+      ],
+      "title": "Service Type"
+    },
+    "package_name": {
+      "type": "string",
+      "title": "Package Name"
+    },
+    "base_price": {
+      "type": "number",
+      "title": "Base Price (RM)"
+    },
+    "price_per_hour": {
+      "type": "number",
+      "title": "Price Per Hour (RM)"
+    },
+    "platform_fee_pct": {
+      "type": "number",
+      "title": "Platform Fee %"
+    },
+    "partner_payout_pct": {
+      "type": "number",
+      "title": "Partner Payout %"
+    },
+    "surge_multiplier": {
+      "type": "number",
+      "default": 1.0,
+      "title": "Surge Multiplier"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "title": "Active"
+    },
+    "city": {
+      "type": "string",
+      "title": "City Override"
+    }
+  },
+  "required": [
+    "service_type",
+    "package_name",
+    "base_price"
+  ]
+}

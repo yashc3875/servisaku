@@ -1,0 +1,35 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User"
+    },
+    "action": {
+      "type": "string",
+      "title": "Action"
+    },
+    "path": {
+      "type": "string",
+      "title": "Page Path"
+    },
+    "ua": {
+      "type": "string",
+      "title": "User Agent"
+    },
+    "timestamp": {
+      "type": "string",
+      "title": "Timestamp"
+    },
+    "meta": {
+      "type": "object",
+      "title": "Metadata",
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "user_email",
+    "action"
+  ]
+}

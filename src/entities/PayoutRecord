@@ -1,0 +1,103 @@
+{
+  "name": "PayoutRecord",
+  "type": "object",
+  "properties": {
+    "partner_email": {
+      "type": "string",
+      "title": "Partner"
+    },
+    "partner_name": {
+      "type": "string",
+      "title": "Partner Name"
+    },
+    "booking_id": {
+      "type": "string",
+      "title": "Booking ID"
+    },
+    "escrow_id": {
+      "type": "string",
+      "title": "Escrow Ledger ID"
+    },
+    "gross_earning": {
+      "type": "number",
+      "title": "Gross Earning (RM)"
+    },
+    "commission_rate": {
+      "type": "number",
+      "title": "Commission Rate (%)"
+    },
+    "commission_amount": {
+      "type": "number",
+      "title": "Commission (RM)"
+    },
+    "tax_deduction": {
+      "type": "number",
+      "title": "Tax Deduction (RM)"
+    },
+    "net_payout": {
+      "type": "number",
+      "title": "Net Payout (RM)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "scheduled",
+        "processing",
+        "paid",
+        "failed",
+        "cancelled"
+      ],
+      "default": "pending",
+      "title": "Payout Status"
+    },
+    "payout_method": {
+      "type": "string",
+      "enum": [
+        "duitnow",
+        "bank_transfer",
+        "wallet"
+      ],
+      "default": "duitnow",
+      "title": "Payout Method"
+    },
+    "bank_account": {
+      "type": "string",
+      "title": "Bank Account / DuitNow"
+    },
+    "bank_name": {
+      "type": "string",
+      "title": "Bank"
+    },
+    "scheduled_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Scheduled Payout Date"
+    },
+    "paid_at": {
+      "type": "string",
+      "title": "Paid At"
+    },
+    "failure_reason": {
+      "type": "string",
+      "title": "Failure Reason"
+    },
+    "retry_count": {
+      "type": "integer",
+      "default": 0,
+      "title": "Retry Count"
+    },
+    "reference_no": {
+      "type": "string",
+      "title": "Transaction Reference"
+    },
+    "period_month": {
+      "type": "string",
+      "title": "Period (YYYY-MM)"
+    }
+  },
+  "required": [
+    "partner_email",
+    "net_payout"
+  ]
+}

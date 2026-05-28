@@ -1,0 +1,68 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User"
+    },
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "body": {
+      "type": "string",
+      "title": "Body"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "booking_update",
+        "payment",
+        "chat",
+        "promo",
+        "system",
+        "reminder"
+      ],
+      "title": "Type"
+    },
+    "reference_id": {
+      "type": "string",
+      "title": "Reference ID (booking/payment)"
+    },
+    "reference_type": {
+      "type": "string",
+      "title": "Reference Type"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "push",
+        "sms",
+        "email",
+        "in_app"
+      ],
+      "default": "in_app",
+      "title": "Channel"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false,
+      "title": "Read"
+    },
+    "sent_at": {
+      "type": "string",
+      "title": "Sent At"
+    },
+    "read_at": {
+      "type": "string",
+      "title": "Read At"
+    }
+  },
+  "required": [
+    "user_email",
+    "title",
+    "body",
+    "type"
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "name": "PartnerLocation",
+  "type": "object",
+  "properties": {
+    "partner_email": {
+      "type": "string",
+      "title": "Partner"
+    },
+    "partner_name": {
+      "type": "string",
+      "title": "Partner Name"
+    },
+    "booking_id": {
+      "type": "string",
+      "title": "Active Booking ID"
+    },
+    "latitude": {
+      "type": "number",
+      "title": "Latitude"
+    },
+    "longitude": {
+      "type": "number",
+      "title": "Longitude"
+    },
+    "heading": {
+      "type": "number",
+      "title": "Heading (degrees)"
+    },
+    "speed": {
+      "type": "number",
+      "title": "Speed (km/h)"
+    },
+    "accuracy": {
+      "type": "number",
+      "title": "Accuracy (m)"
+    },
+    "is_online": {
+      "type": "boolean",
+      "default": false,
+      "title": "Online"
+    },
+    "is_on_job": {
+      "type": "boolean",
+      "default": false,
+      "title": "On Active Job"
+    },
+    "last_seen": {
+      "type": "string",
+      "title": "Last Seen"
+    },
+    "eta_minutes": {
+      "type": "number",
+      "title": "ETA (minutes)"
+    },
+    "city": {
+      "type": "string",
+      "title": "Current City"
+    }
+  },
+  "required": [
+    "partner_email"
+  ]
+}

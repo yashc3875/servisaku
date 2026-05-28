@@ -1,0 +1,105 @@
+{
+  "name": "NotificationLog",
+  "type": "object",
+  "properties": {
+    "notification_id": {
+      "type": "string",
+      "title": "Notification ID"
+    },
+    "user_email": {
+      "type": "string",
+      "title": "Recipient"
+    },
+    "event_type": {
+      "type": "string",
+      "title": "Event Type"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "in_app",
+        "email",
+        "sms",
+        "push"
+      ],
+      "title": "Channel"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "sent",
+        "delivered",
+        "failed",
+        "bounced",
+        "throttled"
+      ],
+      "default": "queued",
+      "title": "Status"
+    },
+    "template_id": {
+      "type": "string",
+      "title": "Template ID"
+    },
+    "subject": {
+      "type": "string",
+      "title": "Subject / Title"
+    },
+    "body_preview": {
+      "type": "string",
+      "title": "Body Preview"
+    },
+    "reference_id": {
+      "type": "string",
+      "title": "Reference ID"
+    },
+    "reference_type": {
+      "type": "string",
+      "title": "Reference Type"
+    },
+    "retry_count": {
+      "type": "integer",
+      "default": 0,
+      "title": "Retry Count"
+    },
+    "max_retries": {
+      "type": "integer",
+      "default": 3,
+      "title": "Max Retries"
+    },
+    "sent_at": {
+      "type": "string",
+      "title": "Sent At"
+    },
+    "delivered_at": {
+      "type": "string",
+      "title": "Delivered At"
+    },
+    "failed_at": {
+      "type": "string",
+      "title": "Failed At"
+    },
+    "failure_reason": {
+      "type": "string",
+      "title": "Failure Reason"
+    },
+    "campaign_id": {
+      "type": "string",
+      "title": "Campaign ID"
+    },
+    "language": {
+      "type": "string",
+      "enum": [
+        "en",
+        "bm"
+      ],
+      "default": "en",
+      "title": "Language"
+    }
+  },
+  "required": [
+    "user_email",
+    "event_type",
+    "channel"
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "name": "ChatMessage",
+  "type": "object",
+  "properties": {
+    "booking_id": {
+      "type": "string",
+      "title": "Booking ID"
+    },
+    "sender_email": {
+      "type": "string",
+      "title": "Sender"
+    },
+    "sender_name": {
+      "type": "string",
+      "title": "Sender Name"
+    },
+    "sender_role": {
+      "type": "string",
+      "enum": [
+        "consumer",
+        "partner",
+        "admin"
+      ],
+      "title": "Sender Role"
+    },
+    "message": {
+      "type": "string",
+      "title": "Message"
+    },
+    "message_type": {
+      "type": "string",
+      "enum": [
+        "text",
+        "image",
+        "location",
+        "system"
+      ],
+      "default": "text",
+      "title": "Type"
+    },
+    "file_url": {
+      "type": "string",
+      "title": "Attachment URL"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false,
+      "title": "Read"
+    },
+    "read_at": {
+      "type": "string",
+      "title": "Read At"
+    },
+    "deleted_at": {
+      "type": "string",
+      "title": "Deleted At"
+    }
+  },
+  "required": [
+    "booking_id",
+    "sender_email",
+    "message"
+  ]
+}

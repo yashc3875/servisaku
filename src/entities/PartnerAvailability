@@ -1,0 +1,49 @@
+{
+  "name": "PartnerAvailability",
+  "type": "object",
+  "properties": {
+    "partner_email": {
+      "type": "string",
+      "title": "Partner"
+    },
+    "day_of_week": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 6,
+      "title": "Day of Week (0=Sun)"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "title": "Specific Date (optional override)"
+    },
+    "start_time": {
+      "type": "string",
+      "title": "Start Time"
+    },
+    "end_time": {
+      "type": "string",
+      "title": "End Time"
+    },
+    "is_available": {
+      "type": "boolean",
+      "default": true,
+      "title": "Available"
+    },
+    "max_jobs": {
+      "type": "integer",
+      "default": 3,
+      "title": "Max Jobs Per Day"
+    },
+    "service_areas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Service Areas"
+    }
+  },
+  "required": [
+    "partner_email"
+  ]
+}

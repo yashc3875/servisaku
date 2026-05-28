@@ -1,0 +1,84 @@
+{
+  "name": "QualityTicket",
+  "type": "object",
+  "properties": {
+    "partner_email": {
+      "type": "string",
+      "title": "Partner"
+    },
+    "partner_name": {
+      "type": "string",
+      "title": "Partner Name"
+    },
+    "trigger_type": {
+      "type": "string",
+      "enum": [
+        "low_rating",
+        "dispute",
+        "cancellation",
+        "late_arrival",
+        "no_show",
+        "manual"
+      ],
+      "title": "Trigger"
+    },
+    "booking_id": {
+      "type": "string",
+      "title": "Related Booking"
+    },
+    "review_id": {
+      "type": "string",
+      "title": "Related Review"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "low",
+      "title": "Severity"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "under_review",
+        "warning_sent",
+        "retraining",
+        "suspended",
+        "resolved",
+        "dismissed"
+      ],
+      "default": "open",
+      "title": "Status"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "admin_notes": {
+      "type": "string",
+      "title": "Admin Notes"
+    },
+    "resolved_by": {
+      "type": "string",
+      "title": "Resolved By"
+    },
+    "resolved_at": {
+      "type": "string",
+      "title": "Resolved At"
+    },
+    "action_taken": {
+      "type": "string",
+      "title": "Action Taken"
+    }
+  },
+  "required": [
+    "partner_email",
+    "trigger_type",
+    "severity"
+  ]
+}

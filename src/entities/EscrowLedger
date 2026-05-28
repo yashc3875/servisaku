@@ -1,0 +1,87 @@
+{
+  "name": "EscrowLedger",
+  "type": "object",
+  "properties": {
+    "booking_id": {
+      "type": "string",
+      "title": "Booking ID"
+    },
+    "payment_id": {
+      "type": "string",
+      "title": "Payment ID"
+    },
+    "consumer_email": {
+      "type": "string",
+      "title": "Consumer"
+    },
+    "partner_email": {
+      "type": "string",
+      "title": "Partner"
+    },
+    "gross_amount": {
+      "type": "number",
+      "title": "Gross Amount (RM)"
+    },
+    "platform_fee": {
+      "type": "number",
+      "title": "Platform Fee (RM)"
+    },
+    "partner_payout": {
+      "type": "number",
+      "title": "Partner Payout (RM)"
+    },
+    "tax_amount": {
+      "type": "number",
+      "title": "Tax / SST (RM)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "held",
+        "released",
+        "frozen",
+        "refunded",
+        "partially_refunded"
+      ],
+      "default": "held",
+      "title": "Escrow Status"
+    },
+    "held_at": {
+      "type": "string",
+      "title": "Held At"
+    },
+    "release_at": {
+      "type": "string",
+      "title": "Scheduled Release At"
+    },
+    "released_at": {
+      "type": "string",
+      "title": "Actually Released At"
+    },
+    "frozen_at": {
+      "type": "string",
+      "title": "Frozen At (dispute)"
+    },
+    "freeze_reason": {
+      "type": "string",
+      "title": "Freeze Reason"
+    },
+    "released_by": {
+      "type": "string",
+      "enum": [
+        "consumer",
+        "auto_48h",
+        "admin"
+      ],
+      "title": "Released By"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes"
+    }
+  },
+  "required": [
+    "booking_id",
+    "gross_amount"
+  ]
+}

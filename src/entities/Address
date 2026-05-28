@@ -1,0 +1,65 @@
+{
+  "name": "Address",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User"
+    },
+    "label": {
+      "type": "string",
+      "title": "Label (e.g. Home, Office)"
+    },
+    "unit": {
+      "type": "string",
+      "title": "Unit / Floor"
+    },
+    "building": {
+      "type": "string",
+      "title": "Building / Block"
+    },
+    "street": {
+      "type": "string",
+      "title": "Street"
+    },
+    "area": {
+      "type": "string",
+      "title": "Area / Neighbourhood"
+    },
+    "city": {
+      "type": "string",
+      "title": "City"
+    },
+    "state": {
+      "type": "string",
+      "default": "Selangor",
+      "title": "State"
+    },
+    "postcode": {
+      "type": "string",
+      "title": "Postcode"
+    },
+    "latitude": {
+      "type": "number",
+      "title": "Latitude"
+    },
+    "longitude": {
+      "type": "number",
+      "title": "Longitude"
+    },
+    "is_default": {
+      "type": "boolean",
+      "default": false,
+      "title": "Default Address"
+    },
+    "deleted_at": {
+      "type": "string",
+      "title": "Deleted At"
+    }
+  },
+  "required": [
+    "user_email",
+    "street",
+    "city"
+  ]
+}

@@ -1,0 +1,187 @@
+{
+  "name": "Booking",
+  "type": "object",
+  "properties": {
+    "service_type": {
+      "type": "string",
+      "enum": [
+        "Home Cleaning",
+        "Plumbing",
+        "Electrical",
+        "AC Servicing",
+        "Painting",
+        "Pest Control"
+      ],
+      "title": "Service Type"
+    },
+    "consumer_email": {
+      "type": "string",
+      "title": "Consumer"
+    },
+    "consumer_name": {
+      "type": "string",
+      "title": "Consumer Name"
+    },
+    "consumer_phone": {
+      "type": "string",
+      "title": "Consumer Phone"
+    },
+    "partner_email": {
+      "type": "string",
+      "title": "Assigned Partner"
+    },
+    "partner_name": {
+      "type": "string",
+      "title": "Partner Name"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "title": "Date"
+    },
+    "time_slot": {
+      "type": "string",
+      "enum": [
+        "8:00 AM",
+        "9:00 AM",
+        "10:00 AM",
+        "11:00 AM",
+        "12:00 PM",
+        "1:00 PM",
+        "2:00 PM",
+        "3:00 PM",
+        "4:00 PM",
+        "5:00 PM"
+      ],
+      "title": "Time Slot"
+    },
+    "address_id": {
+      "type": "string",
+      "title": "Address ID"
+    },
+    "address": {
+      "type": "string",
+      "title": "Service Address"
+    },
+    "city": {
+      "type": "string",
+      "title": "City"
+    },
+    "latitude": {
+      "type": "number",
+      "title": "Latitude"
+    },
+    "longitude": {
+      "type": "number",
+      "title": "Longitude"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "assigned",
+        "accepted",
+        "en_route",
+        "arrived",
+        "started",
+        "completed",
+        "cancelled",
+        "disputed"
+      ],
+      "default": "pending",
+      "title": "Status"
+    },
+    "package_name": {
+      "type": "string",
+      "title": "Package"
+    },
+    "price": {
+      "type": "number",
+      "title": "Price (RM)"
+    },
+    "platform_fee": {
+      "type": "number",
+      "title": "Platform Fee (RM)"
+    },
+    "partner_payout": {
+      "type": "number",
+      "title": "Partner Payout (RM)"
+    },
+    "coupon_code": {
+      "type": "string",
+      "title": "Coupon Code"
+    },
+    "discount_amount": {
+      "type": "number",
+      "title": "Discount (RM)"
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "paid",
+        "refunded",
+        "failed",
+        "escrowed"
+      ],
+      "default": "pending",
+      "title": "Payment Status"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "card",
+        "fpx",
+        "ewallet",
+        "cash"
+      ],
+      "title": "Payment Method"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes"
+    },
+    "cancellation_reason": {
+      "type": "string",
+      "title": "Cancellation Reason"
+    },
+    "cancelled_by": {
+      "type": "string",
+      "enum": [
+        "consumer",
+        "partner",
+        "admin"
+      ],
+      "title": "Cancelled By"
+    },
+    "rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "title": "Rating"
+    },
+    "review": {
+      "type": "string",
+      "title": "Review"
+    },
+    "partner_started_at": {
+      "type": "string",
+      "title": "Service Started At"
+    },
+    "partner_completed_at": {
+      "type": "string",
+      "title": "Service Completed At"
+    },
+    "tracking_token": {
+      "type": "string",
+      "title": "Tracking Token"
+    }
+  },
+  "required": [
+    "service_type",
+    "consumer_email",
+    "date",
+    "time_slot",
+    "address"
+  ]
+}

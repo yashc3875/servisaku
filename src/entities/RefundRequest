@@ -1,0 +1,97 @@
+{
+  "name": "RefundRequest",
+  "type": "object",
+  "properties": {
+    "booking_id": {
+      "type": "string",
+      "title": "Booking ID"
+    },
+    "payment_id": {
+      "type": "string",
+      "title": "Payment ID"
+    },
+    "consumer_email": {
+      "type": "string",
+      "title": "Consumer"
+    },
+    "requested_by": {
+      "type": "string",
+      "enum": [
+        "consumer",
+        "partner",
+        "admin"
+      ],
+      "title": "Requested By"
+    },
+    "refund_type": {
+      "type": "string",
+      "enum": [
+        "full",
+        "partial"
+      ],
+      "title": "Refund Type"
+    },
+    "original_amount": {
+      "type": "number",
+      "title": "Original Amount (RM)"
+    },
+    "refund_amount": {
+      "type": "number",
+      "title": "Refund Amount (RM)"
+    },
+    "reason": {
+      "type": "string",
+      "title": "Reason"
+    },
+    "reason_detail": {
+      "type": "string",
+      "title": "Detailed Reason"
+    },
+    "evidence_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence Photos"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "under_review",
+        "approved",
+        "rejected",
+        "processed",
+        "failed"
+      ],
+      "default": "pending",
+      "title": "Status"
+    },
+    "reviewed_by": {
+      "type": "string",
+      "title": "Reviewed By (admin)"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "title": "Reviewed At"
+    },
+    "rejection_reason": {
+      "type": "string",
+      "title": "Rejection Reason"
+    },
+    "processed_at": {
+      "type": "string",
+      "title": "Processed At"
+    },
+    "gateway_refund_id": {
+      "type": "string",
+      "title": "Gateway Refund ID"
+    }
+  },
+  "required": [
+    "booking_id",
+    "consumer_email",
+    "refund_amount",
+    "reason"
+  ]
+}

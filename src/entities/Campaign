@@ -1,0 +1,123 @@
+{
+  "name": "Campaign",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Campaign Name"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "broadcast",
+        "promotional",
+        "service_alert",
+        "reminder",
+        "reactivation"
+      ],
+      "title": "Type"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "scheduled",
+        "sending",
+        "sent",
+        "paused",
+        "cancelled"
+      ],
+      "default": "draft",
+      "title": "Status"
+    },
+    "target_audience": {
+      "type": "string",
+      "enum": [
+        "all",
+        "consumers",
+        "partners",
+        "inactive_partners",
+        "low_rated_partners",
+        "custom"
+      ],
+      "default": "all",
+      "title": "Target Audience"
+    },
+    "channels": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "in_app",
+          "email",
+          "sms",
+          "push"
+        ]
+      },
+      "title": "Channels"
+    },
+    "subject": {
+      "type": "string",
+      "title": "Subject / Title"
+    },
+    "body": {
+      "type": "string",
+      "title": "Message Body"
+    },
+    "body_bm": {
+      "type": "string",
+      "title": "Message Body (BM)"
+    },
+    "scheduled_at": {
+      "type": "string",
+      "title": "Scheduled Send Time"
+    },
+    "sent_at": {
+      "type": "string",
+      "title": "Sent At"
+    },
+    "sent_by": {
+      "type": "string",
+      "title": "Sent By"
+    },
+    "total_recipients": {
+      "type": "integer",
+      "default": 0,
+      "title": "Total Recipients"
+    },
+    "sent_count": {
+      "type": "integer",
+      "default": 0,
+      "title": "Sent"
+    },
+    "delivered_count": {
+      "type": "integer",
+      "default": 0,
+      "title": "Delivered"
+    },
+    "failed_count": {
+      "type": "integer",
+      "default": 0,
+      "title": "Failed"
+    },
+    "open_count": {
+      "type": "integer",
+      "default": 0,
+      "title": "Opened"
+    },
+    "cta_url": {
+      "type": "string",
+      "title": "CTA URL"
+    },
+    "cta_label": {
+      "type": "string",
+      "title": "CTA Label"
+    }
+  },
+  "required": [
+    "name",
+    "type",
+    "subject",
+    "body"
+  ]
+}

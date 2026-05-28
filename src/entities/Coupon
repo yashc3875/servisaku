@@ -1,0 +1,80 @@
+{
+  "name": "Coupon",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "title": "Coupon Code"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "discount_type": {
+      "type": "string",
+      "enum": [
+        "percentage",
+        "fixed_amount"
+      ],
+      "title": "Discount Type"
+    },
+    "discount_value": {
+      "type": "number",
+      "title": "Discount Value"
+    },
+    "min_order_amount": {
+      "type": "number",
+      "title": "Min Order (RM)"
+    },
+    "max_discount_cap": {
+      "type": "number",
+      "title": "Max Discount Cap (RM)"
+    },
+    "applicable_services": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Applicable Services"
+    },
+    "usage_limit": {
+      "type": "integer",
+      "title": "Total Usage Limit"
+    },
+    "usage_per_user": {
+      "type": "integer",
+      "default": 1,
+      "title": "Usage Per User"
+    },
+    "times_used": {
+      "type": "integer",
+      "default": 0,
+      "title": "Times Used"
+    },
+    "valid_from": {
+      "type": "string",
+      "format": "date",
+      "title": "Valid From"
+    },
+    "valid_until": {
+      "type": "string",
+      "format": "date",
+      "title": "Valid Until"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "title": "Active"
+    },
+    "first_booking_only": {
+      "type": "boolean",
+      "default": false,
+      "title": "First Booking Only"
+    }
+  },
+  "required": [
+    "code",
+    "discount_type",
+    "discount_value"
+  ]
+}

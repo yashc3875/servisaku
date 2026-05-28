@@ -1,0 +1,79 @@
+{
+  "name": "Review",
+  "type": "object",
+  "properties": {
+    "booking_id": {
+      "type": "string",
+      "title": "Booking"
+    },
+    "partner_email": {
+      "type": "string",
+      "title": "Partner"
+    },
+    "consumer_email": {
+      "type": "string",
+      "title": "Consumer"
+    },
+    "service_type": {
+      "type": "string",
+      "title": "Service Type"
+    },
+    "rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "title": "Rating"
+    },
+    "comment": {
+      "type": "string",
+      "title": "Comment"
+    },
+    "punctuality_rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "title": "Punctuality"
+    },
+    "quality_rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "title": "Quality"
+    },
+    "professionalism_rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "title": "Professionalism"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Photos"
+    },
+    "partner_reply": {
+      "type": "string",
+      "title": "Partner Reply"
+    },
+    "partner_replied_at": {
+      "type": "string",
+      "title": "Partner Replied At"
+    },
+    "is_visible": {
+      "type": "boolean",
+      "default": true,
+      "title": "Visible"
+    },
+    "deleted_at": {
+      "type": "string",
+      "title": "Deleted At"
+    }
+  },
+  "required": [
+    "booking_id",
+    "partner_email",
+    "rating"
+  ]
+}
