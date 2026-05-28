@@ -1,0 +1,63 @@
+/* src/styles/tokens.css
+   New design-token layer. Imported FIRST by index.css so it provides defaults
+   that the existing :root block in index.css can override during transition.
+   Sprint 4 removes the legacy block from index.css and this becomes the sole
+   source of truth. */
+
+:root {
+  /* ── Surfaces — warm off-white, never cold gray ───────────────── */
+  --bg:              42 20% 97%;     /* #F7F7F5 */
+  --surface:         0 0% 100%;
+  --surface-raised:  40 14% 98%;
+
+  /* Hairline expressed as raw HSL triplet so Tailwind alpha syntax works. */
+  --hairline-rgb:    220 13% 11%;    /* used as hsl(var(--hairline-rgb) / 0.06) */
+
+  /* ── Ink ────────────────────────────────────────── */
+  --ink-primary:     220 13% 11%;    /* #1D1D1F */
+  --ink-secondary:   220 9% 46%;     /* #6B7280 */
+  --ink-tertiary:    220 9% 64%;
+  --ink-inverse:     0 0% 100%;
+
+  /* ── Brand (used on ≤8% of any viewport) ─────────────────── */
+  --brand:           158 53% 20%;    /* #184D3B */
+  --brand-tint:      155 24% 93%;
+  --brand-ink:       158 53% 14%;
+
+  /* ── Accent (CTA + emergency only) ─────────────────────── */
+  --accent-tint:     32 100% 94%;
+
+  /* ── Semantic ───────────────────────────────────── */
+  --success:         152 60% 30%;  --success-tint: 152 50% 94%;
+  --warning:         32 85% 38%;   --warning-tint: 38 95% 94%;
+  --danger:          0 72% 41%;    --danger-tint:  0 80% 96%;
+  --info:            215 65% 33%;  --info-tint:    215 70% 95%;
+
+  /* ── Motion easings (mirrored in src/lib/design/motion.js) ──────── */
+  --ease-spring-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring-in:  cubic-bezier(0.7, 0, 0.84, 0);
+}
+
+/* ── Dark-mode tokens (pre-seeded; runtime toggle ships Sprint 4) ──── */
+.dark {
+  --bg:              220 18% 7%;
+  --surface:         220 18% 10%;
+  --surface-raised:  220 18% 13%;
+  --hairline-rgb:    220 10% 90%;
+
+  --ink-primary:     220 10% 96%;
+  --ink-secondary:   220 8% 64%;
+  --ink-tertiary:    220 8% 50%;
+  --ink-inverse:     220 18% 8%;
+
+  --brand:           158 50% 55%;
+  --brand-tint:      158 35% 18%;
+  --brand-ink:       158 70% 88%;
+
+  --accent-tint:     29 60% 18%;
+
+  --success: 152 50% 55%; --success-tint: 152 30% 18%;
+  --warning: 32 85% 60%;  --warning-tint: 32 50% 18%;
+  --danger:  0 72% 60%;   --danger-tint:  0 50% 18%;
+  --info:    215 65% 60%; --info-tint:    215 40% 18%;
+}

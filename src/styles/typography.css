@@ -1,0 +1,12 @@
+/* src/styles/typography.css */
+
+@layer base {
+  .text-display { font-family: 'Inter Tight', Inter, system-ui, sans-serif; }
+
+  .h1 { @apply text-h1 text-ink; font-family: 'Inter Tight', Inter, sans-serif; }
+  .h2 { @apply text-h2 text-ink; font-family: 'Inter Tight', Inter, sans-serif; }
+  .h3 { @apply text-h3 text-ink; }
+
+  .caption { @apply text-caption text-ink-secondary; }
+  .micro   { @apply text-micro uppercase tracking-wider text-ink-tertiary; }
+}
