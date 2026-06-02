@@ -30,8 +30,8 @@ export default function TopNav() {
         
         {/* Left: Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <div className="text-brand">
-            <Hexagon className="size-8 fill-brand text-brand" />
+          <div className="flex items-center justify-center">
+            <img src="/img/brand-logo.png" className="h-9 w-auto object-contain" alt="ServisAku Logo" />
           </div>
           <div className="flex flex-col justify-center min-w-0">
             <p className="font-extrabold text-[24px] leading-none tracking-tight">

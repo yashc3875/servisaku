@@ -99,7 +99,7 @@ export default function Explore() {
         {viewMode === 'list' ? (
           /* ─── List View ─── */
           <motion.div
-            className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3"
+            className="grid grid-cols-1 lg:grid-cols-2 gap-4"
             {...stagger}
             initial="initial"
             animate="animate"
@@ -111,9 +111,9 @@ export default function Explore() {
                 <motion.div key={s.id} variants={staggerItem} whileHover={variants.pressable.whileHover} whileTap={variants.pressable.whileTap}>
                   <Link
                     to={`/service/${s.id}`}
-                    className="flex items-center gap-4 bg-surface rounded-3xl border border-hairline/10 p-4 shadow-e1 hover:shadow-e2 transition-all group"
+                    className="flex items-center gap-5 bg-surface rounded-3xl border border-hairline/10 p-5 shadow-e1 hover:shadow-e2 transition-all group"
                   >
-                    <div className="relative w-20 h-20 rounded-2xl overflow-hidden shrink-0">
+                    <div className="relative w-28 h-28 rounded-2xl overflow-hidden shrink-0">
                       <img
                         src={s.image}
                         alt={s.name}
@@ -124,25 +124,25 @@ export default function Explore() {
                       <div className="flex items-center gap-2 mb-1">
                         <div
                           className={cn(
-                            'w-6 h-6 rounded-lg flex items-center justify-center',
+                            'w-8 h-8 rounded-lg flex items-center justify-center',
                             s.color
                           )}
                         >
-                          <Icon className="h-3.5 w-3.5" />
+                          <Icon className="h-4 w-4" />
                         </div>
-                        <h3 className="font-bold text-sm text-ink">{tField(s, 'name')}</h3>
+                        <h3 className="font-bold text-base text-ink">{tField(s, 'name')}</h3>
                       </div>
-                      <p className="text-xs text-ink-secondary mb-2 line-clamp-1">
+                      <p className="text-sm text-ink-secondary mb-3 line-clamp-2">
                         {tField(s, 'description')}
                       </p>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-brand">{s.price}</span>
-                        <span className="text-[10px] text-ink-tertiary bg-raised px-2 py-0.5 rounded-full">
+                        <span className="text-sm font-bold text-brand">{s.price}</span>
+                        <span className="text-xs text-ink-tertiary bg-raised px-2.5 py-1 rounded-full">
                           {s.duration}
                         </span>
                       </div>
                     </div>
-                    <ArrowRight className="h-4 w-4 text-ink-secondary group-hover:text-brand transition-colors shrink-0" />
+                    <ArrowRight className="h-5 w-5 text-ink-secondary group-hover:text-brand transition-colors shrink-0 ml-2" />
                   </Link>
                 </motion.div>
               );
@@ -151,7 +151,7 @@ export default function Explore() {
         ) : (
           /* ─── Grid View ─── */
           <motion.div
-            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"
             {...stagger}
             initial="initial"
             animate="animate"
@@ -163,7 +163,7 @@ export default function Explore() {
                 <motion.div key={s.id} variants={staggerItem} whileHover={variants.pressable.whileHover} whileTap={variants.pressable.whileTap} className="h-full">
                   <Link
                     to={`/service/${s.id}`}
-                    className="flex flex-col h-full bg-surface rounded-2xl border border-hairline/10 overflow-hidden shadow-e1 hover:shadow-e2 hover:border-brand/30 transition-all group"
+                    className="flex flex-col h-full bg-surface rounded-3xl border border-hairline/10 overflow-hidden shadow-e1 hover:shadow-e2 hover:border-brand/30 transition-all group"
                   >
                     {s.image ? (
                       <div className="w-full aspect-[4/3] bg-raised overflow-hidden relative">
@@ -171,12 +171,13 @@ export default function Explore() {
                       </div>
                     ) : (
                       <div className={cn('w-full aspect-[4/3] flex items-center justify-center', s.color)}>
-                        <Icon className="h-8 w-8 opacity-50" />
+                        <Icon className="h-10 w-10 opacity-50" />
                       </div>
                     )}
-                    <div className="p-4 flex flex-col items-start gap-1 flex-1">
-                      <h3 className="font-bold text-sm text-ink group-hover:text-brand transition-colors line-clamp-2">{tField(s, 'name')}</h3>
-                      <span className="text-xs font-bold text-brand mt-auto pt-2">{s.price}</span>
+                    <div className="p-5 flex flex-col items-start gap-1.5 flex-1">
+                      <h3 className="font-bold text-base text-ink group-hover:text-brand transition-colors line-clamp-2">{tField(s, 'name')}</h3>
+                      <p className="text-xs text-ink-secondary mb-1 line-clamp-1">{tField(s, 'description')}</p>
+                      <span className="text-sm font-bold text-brand mt-auto pt-2">{s.price}</span>
                     </div>
                   </Link>
                 </motion.div>

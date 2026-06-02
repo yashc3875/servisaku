@@ -137,17 +137,18 @@ export default function Home() {
         <CategoryGrid />
 
         {/* ── Promos (3 Banners) ─────────────────────────── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 mt-2">
           {/* Banner 1 */}
           <div 
             onClick={() => navigate('/explore')}
             className="bg-orange-50 rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group cursor-pointer"
           >
             <div className="relative z-10 w-3/4">
-              <h3 className="text-lg font-bold text-ink mb-1">Save More with<br/><span className="text-brand">ServisAku Rewards!</span></h3>
-              <button className="mt-4 bg-brand text-white px-5 py-2.5 rounded-lg text-xs font-bold hover:bg-brand/90 transition-colors shadow-sm w-max">
-                Learn More
-              </button>
+              <h3 className="text-lg font-bold text-ink mb-1">Save 20% on your<br/><span className="text-brand">first booking!</span></h3>
+              <p className="text-[11px] text-ink-secondary font-medium leading-tight mb-3 pr-4">Use this code at checkout to get 20% off your service.</p>
+              <div className="bg-white/80 backdrop-blur border-2 border-dashed border-brand text-brand px-4 py-2 rounded-lg text-sm font-bold w-max font-mono tracking-wider shadow-sm">
+                WELCOME20
+              </div>
             </div>
             <Gift className="absolute -right-4 -bottom-4 w-32 h-32 text-orange-200 group-hover:scale-105 transition-transform" strokeWidth={1.5} />
           </div>

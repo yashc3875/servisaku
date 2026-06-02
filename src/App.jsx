@@ -39,6 +39,10 @@ const AdminOperations = lazy(() => import('./pages/AdminOperations'));
 const ReviewFlow = lazy(() => import('./pages/ReviewFlow'));
 const NotificationCenter = lazy(() => import('./pages/NotificationCenter'));
 const PartnerCalendar = lazy(() => import('./pages/PartnerCalendar'));
+const HowItWorks = lazy(() => import('./pages/HowItWorks'));
+const ForBusiness = lazy(() => import('./pages/ForBusiness'));
+const Promotions = lazy(() => import('./pages/Promotions'));
+const Help = lazy(() => import('./pages/Help'));
 const AdminCommunications = lazy(() => import('./pages/AdminCommunications'));
 const AdminQualityCenter = lazy(() => import('./pages/AdminQualityCenter'));
 const AdminAnalytics = lazy(() => import('./pages/AdminAnalytics'));
@@ -101,6 +105,10 @@ const AuthenticatedApp = () => {
           <Route path="/admin/analytics" element={<ProtectedRoute roles={['admin','super_admin']}><AdminAnalytics /></ProtectedRoute>} />
           <Route path="/admin/operations" element={<ProtectedRoute roles={['admin','super_admin']}><AdminOperations /></ProtectedRoute>} />
           <Route path="/architecture" element={<Architecture />} />
+          <Route path="/how-it-works" element={<HowItWorks />} />
+          <Route path="/business" element={<ForBusiness />} />
+          <Route path="/promos" element={<Promotions />} />
+          <Route path="/help" element={<Help />} />
           <Route path="/otp-login" element={<OTPLogin />} />
           <Route path="/profile/setup" element={<ProtectedRoute><ProfileSetup /></ProtectedRoute>} />
           <Route path="/profile/edit" element={<ProtectedRoute><ConsumerProfile /></ProtectedRoute>} />
