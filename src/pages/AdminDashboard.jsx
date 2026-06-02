@@ -10,15 +10,7 @@ import StatusBadge from '../components/StatusBadge';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import moment from 'moment';
 
-const CHART_DATA = [
-  { day: 'Mon', bookings: 14 },
-  { day: 'Tue', bookings: 22 },
-  { day: 'Wed', bookings: 18 },
-  { day: 'Thu', bookings: 31 },
-  { day: 'Fri', bookings: 28 },
-  { day: 'Sat', bookings: 42 },
-  { day: 'Sun', bookings: 35 },
-];
+// Chart data will be dynamically generated
 
 const QUICK_ACTIONS = [
   { icon: Users,    label: 'Users',         to: '/admin/users',          color: 'bg-violet-50 text-violet-600' },
@@ -47,6 +39,7 @@ function KPICard({ label, value, sub, icon: Icon, color, trend }) {
 export default function AdminDashboard() {
   const [bookings, setBookings] = useState([]);
   const [users,    setUsers]    = useState([]);
+  const [refunds,  setRefunds]  = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [tab,      setTab]      = useState('bookings');
 
@@ -54,15 +47,24 @@ export default function AdminDashboard() {
     Promise.all([
       base44.entities.Booking.list('-created_date', 100),
       base44.entities.User.list('-created_date', 100),
-    ]).then(([b, u]) => { setBookings(b); setUsers(u); setLoading(false); });
+      base44.entities.RefundRequest.list('-created_date', 50),
+    ]).then(([b, u, r]) => { setBookings(b); setUsers(u); setRefunds(r); setLoading(false); });
   }, []);
 
   const revenue          = bookings.filter(b => b.status === 'completed').reduce((s, b) => s + (b.price || 0), 0);
   const partners         = users.filter(u => u.role === 'partner');
   const pendingApprovals = partners.filter(u => !u.partner_verified);
+  const pendingRefunds   = refunds.filter(r => r.status === 'pending' || r.status === 'under_review');
   const activeBookings   = bookings.filter(b =>
     ['pending','assigned','accepted','en_route','arrived','started'].includes(b.status)
   );
+
+  // Dynamic Chart Data (Last 7 Days)
+  const chartData = Array.from({ length: 7 }, (_, i) => {
+    const d = moment().subtract(6 - i, 'days');
+    const dayBookings = bookings.filter(b => moment(b.date).isSame(d, 'day'));
+    return { day: d.format('ddd'), bookings: dayBookings.length };
+  });
 
   const kpis = [
     { label: 'Total Revenue',    value: `RM ${revenue.toLocaleString()}`, sub: '+12% this week',         icon: DollarSign,  color: 'bg-emerald-50 text-emerald-700', trend: 'up'     },
@@ -91,42 +93,57 @@ export default function AdminDashboard() {
         </div>
 
         {/* Alert */}
-        {pendingApprovals.length > 0 && (
-          <Link to="/admin/users"
-            className="flex items-center gap-3 bg-amber-50 border border-amber-200/70 rounded-2xl p-4 mt-5 shadow-xs
-                       hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
-              <AlertTriangle className="h-4.5 w-4.5 text-amber-600" style={{ height: '1.125rem', width: '1.125rem' }} />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-bold text-amber-900">{pendingApprovals.length} partners awaiting approval</p>
-              <p className="text-xs text-amber-600 mt-0.5">Review documents and verify</p>
-            </div>
-            <ChevronRight className="h-4 w-4 text-amber-500 shrink-0" />
-          </Link>
-        )}
+        <div className="space-y-3 mt-5">
+          {pendingApprovals.length > 0 && (
+            <Link to="/admin/users"
+              className="flex items-center gap-3 bg-amber-50 border border-amber-200/70 rounded-2xl p-4 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                <AlertTriangle className="h-4.5 w-4.5 text-amber-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-amber-900">{pendingApprovals.length} partners awaiting approval</p>
+                <p className="text-xs text-amber-600 mt-0.5">Review documents and verify</p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-amber-500 shrink-0" />
+            </Link>
+          )}
+
+          {pendingRefunds.length > 0 && (
+            <Link to="/admin/finance"
+              className="flex items-center gap-3 bg-red-50 border border-red-200/70 rounded-2xl p-4 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+              <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
+                <DollarSign className="h-4.5 w-4.5 text-red-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-red-900">{pendingRefunds.length} refunds requiring action</p>
+                <p className="text-xs text-red-600 mt-0.5">Review disputes and process refunds</p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-red-500 shrink-0" />
+            </Link>
+          )}
+        </div>
 
         {/* Chart */}
         <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5 mt-5 lg:mt-6">
           <div className="flex items-center justify-between mb-5">
             <div>
               <h3 className="text-sm font-bold">Bookings This Week</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">190 total bookings</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{chartData.reduce((s, d) => s + d.bookings, 0)} total bookings</p>
             </div>
             <div className="flex items-center gap-1 text-xs text-emerald-700 font-bold bg-emerald-50 px-2.5 py-1 rounded-full">
               <ArrowUpRight className="h-3 w-3" /> +18%
             </div>
           </div>
           <ResponsiveContainer width="100%" height={120}>
-            <BarChart data={CHART_DATA} barCategoryGap="35%">
+            <BarChart data={chartData} barCategoryGap="35%">
               <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
               <Tooltip
                 contentStyle={{ borderRadius: 14, border: 'none', boxShadow: '0 8px 32px rgb(0 0 0/0.1)', fontSize: 12 }}
                 cursor={{ fill: 'hsl(var(--muted))' }}
               />
               <Bar dataKey="bookings" radius={[6, 6, 3, 3]}>
-                {CHART_DATA.map((_, i) => (
-                  <Cell key={i} fill={i === 5 ? 'hsl(var(--primary))' : 'hsl(var(--muted))'}  />
+                {chartData.map((_, i) => (
+                  <Cell key={i} fill={i === 6 ? 'hsl(var(--primary))' : 'hsl(var(--muted))'}  />
                 ))}
               </Bar>
             </BarChart>

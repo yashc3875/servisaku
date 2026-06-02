@@ -31,7 +31,7 @@ export default function AdminOperations() {
   const activeBookings = useActiveBookings();
   const onlinePartners = useOnlinePartners();
   const [tab, setTab] = useState('map');
-  const [tick, setTick] = useState(0);
+  const [_tick, setTick] = useState(0);
 
   useEffect(() => {
     const t = setInterval(() => setTick(n => n + 1), 30000);

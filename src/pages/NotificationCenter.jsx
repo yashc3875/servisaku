@@ -47,7 +47,7 @@ function NotifItem({ n, onRead, onDelete }) {
 
 export default function NotificationCenter() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const [_user, setUser] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');

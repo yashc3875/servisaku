@@ -19,7 +19,7 @@ export default function ProtectedRoute({ children, roles }) {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/otp-login" replace state={{ from: window.location.pathname }} />;
   }
 
   if (roles && !roles.includes(user.role)) {

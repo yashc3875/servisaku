@@ -17,7 +17,7 @@ function StarPicker({ value, onChange, size = 'lg' }) {
       {[1,2,3,4,5].map(i => (
         <button key={i} onClick={() => onChange(i)}
           onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(0)}>
-          <Star className={`${sz} transition-all ${i <= (hover || value) ? 'fill-amber-400 text-amber-400 scale-110' : 'text-border'}`} />
+          <Star className={`${sz} transition-all ${i <= (hover || value) ? 'fill-amber-400 text-amber-400 scale-110' : 'text-ink-tertiary'}`} />
         </button>
       ))}
     </div>
@@ -102,35 +102,35 @@ export default function ReviewFlow() {
 
   if (!booking) return (
     <div className="flex justify-center pt-32">
-      <div className="w-6 h-6 border-2 border-muted border-t-primary rounded-full animate-spin" />
+      <div className="w-6 h-6 border-2 border-raised border-t-brand rounded-full animate-spin" />
     </div>
   );
 
   if (booking.rating) return (
-    <div className="min-h-screen bg-background font-inter flex flex-col items-center justify-center px-5">
+    <div className="min-h-screen bg-bg font-inter flex flex-col items-center justify-center px-5">
       <CheckCircle2 className="h-16 w-16 text-emerald-500 mb-4" />
       <h2 className="text-xl font-bold mb-2">Already Reviewed</h2>
-      <p className="text-muted-foreground text-sm text-center mb-6">You've already submitted a review for this booking.</p>
+      <p className="text-ink-secondary text-sm text-center mb-6">You've already submitted a review for this booking.</p>
       <Button onClick={() => navigate(`/booking/${bookingId}`)} className="rounded-xl px-8">Back to Booking</Button>
     </div>
   );
 
   if (step === 5) return (
-    <div className="min-h-screen bg-background font-inter flex flex-col items-center justify-center px-5 text-center">
+    <div className="min-h-screen bg-bg font-inter flex flex-col items-center justify-center px-5 text-center">
       <div className="text-6xl mb-4">🎉</div>
       <h2 className="text-xl font-bold mb-2">Thank you!</h2>
-      <p className="text-muted-foreground text-sm mb-2">Your review helps improve our service quality.</p>
+      <p className="text-ink-secondary text-sm mb-2">Your review helps improve our service quality.</p>
       <div className="text-5xl my-4">{EMOJI_MAP[overallRating]}</div>
       <p className="font-bold text-lg">{LABEL_MAP[overallRating]}</p>
       <div className="flex gap-1 justify-center my-3">
         {[1,2,3,4,5].map(i => (
-          <Star key={i} className={`h-6 w-6 ${i <= overallRating ? 'fill-amber-400 text-amber-400' : 'text-border'}`} />
+          <Star key={i} className={`h-6 w-6 ${i <= overallRating ? 'fill-amber-400 text-amber-400' : 'text-ink-tertiary'}`} />
         ))}
       </div>
       {selectedTags.length > 0 && (
         <div className="flex flex-wrap gap-1.5 justify-center mb-4">
           {selectedTags.map(t => (
-            <span key={t} className="text-xs bg-accent text-accent-foreground px-3 py-1 rounded-full">{t}</span>
+            <span key={t} className="text-xs bg-brand-tint text-brand-ink px-3 py-1 rounded-full">{t}</span>
           ))}
         </div>
       )}
@@ -142,38 +142,38 @@ export default function ReviewFlow() {
   );
 
   return (
-    <div className="min-h-screen bg-background font-inter pb-32">
+    <div className="min-h-screen bg-bg font-inter pb-32">
       {/* Header */}
-      <div className="bg-white border-b border-border px-5 pt-12 pb-4 sticky top-0 z-10">
+      <div className="bg-surface border-b border-hairline/10 px-5 pt-12 pb-4 sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <button onClick={() => step > 1 ? setStep(s => s - 1) : navigate(-1)}
-            className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center">
-            <ArrowLeft className="h-4 w-4" />
+            className="w-9 h-9 rounded-xl bg-raised flex items-center justify-center">
+            <ArrowLeft className="h-4 w-4 text-ink" />
           </button>
           <div className="flex-1">
-            <h1 className="font-bold text-base">Rate Your Experience</h1>
-            <p className="text-xs text-muted-foreground">{booking.service_type} • {booking.partner_name}</p>
+            <h1 className="font-bold text-base text-ink">Rate Your Experience</h1>
+            <p className="text-xs text-ink-secondary">{booking.service_type} • {booking.partner_name}</p>
           </div>
-          <span className="text-xs text-muted-foreground">{step}/4</span>
+          <span className="text-xs text-ink-secondary">{step}/4</span>
         </div>
         {/* Progress */}
         <div className="flex gap-1 mt-3">
           {[1,2,3,4].map(i => (
-            <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i <= step ? 'bg-primary' : 'bg-muted'}`} />
+            <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i <= step ? 'bg-brand' : 'bg-raised'}`} />
           ))}
         </div>
       </div>
 
-      <div className="px-5 pt-8 max-w-lg mx-auto">
+      <div className="px-5 pt-8 max-w-lg mx-auto text-ink">
 
         {/* Step 1: Overall Rating */}
         {step === 1 && (
           <div className="text-center">
-            <div className="w-16 h-16 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl font-bold text-primary">{booking.partner_name?.charAt(0)}</span>
+            <div className="w-16 h-16 bg-brand/10 rounded-3xl flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl font-bold text-brand">{booking.partner_name?.charAt(0)}</span>
             </div>
             <h2 className="text-xl font-bold mb-1">How was {booking.partner_name?.split(' ')[0]}?</h2>
-            <p className="text-sm text-muted-foreground mb-8">{booking.service_type} on {new Date(booking.date).toLocaleDateString('en-MY', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+            <p className="text-sm text-ink-secondary mb-8">{booking.service_type} on {new Date(booking.date).toLocaleDateString('en-MY', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
 
             <StarPicker value={overallRating} onChange={setOverallRating} size="lg" />
 
@@ -190,7 +190,7 @@ export default function ReviewFlow() {
         {step === 2 && (
           <div>
             <h2 className="text-xl font-bold mb-1 text-center">Rate the details</h2>
-            <p className="text-sm text-muted-foreground text-center mb-6">Optional — but very helpful!</p>
+            <p className="text-sm text-ink-secondary text-center mb-6">Optional — but very helpful!</p>
             {[
               { label: 'Punctuality', value: punctuality, onChange: setPunctuality },
               { label: 'Work Quality', value: quality, onChange: setQuality },
@@ -208,14 +208,14 @@ export default function ReviewFlow() {
         {step === 3 && (
           <div>
             <h2 className="text-xl font-bold mb-1 text-center">What stood out?</h2>
-            <p className="text-sm text-muted-foreground text-center mb-6">Select all that apply</p>
+            <p className="text-sm text-ink-secondary text-center mb-6">Select all that apply</p>
             <div className="flex flex-wrap gap-2 justify-center mb-6">
               {CONSUMER_REVIEW_TAGS.map(tag => (
                 <button key={tag} onClick={() => toggleTag(tag)}
                   className={`px-4 py-2.5 rounded-2xl border text-sm font-semibold transition-all ${
                     selectedTags.includes(tag)
-                      ? 'bg-primary text-white border-primary scale-105'
-                      : 'bg-white border-border text-foreground hover:border-primary/50'
+                      ? 'bg-brand text-ink-inverse border-brand scale-105'
+                      : 'bg-surface border-hairline/10 text-ink hover:border-brand/50'
                   }`}>
                   {tag}
                 </button>
@@ -223,9 +223,9 @@ export default function ReviewFlow() {
             </div>
 
             {/* Photos */}
-            <div className="bg-muted/50 rounded-2xl p-4">
+            <div className="bg-raised/50 rounded-2xl p-4">
               <p className="text-sm font-semibold mb-2">Add photos (optional)</p>
-              <p className="text-xs text-muted-foreground mb-3">Show before/after work or issues</p>
+              <p className="text-xs text-ink-secondary mb-3">Show before/after work or issues</p>
               <div className="flex gap-2 flex-wrap">
                 {photos.map((url, i) => (
                   <div key={i} className="relative w-16 h-16 rounded-xl overflow-hidden">
@@ -236,9 +236,9 @@ export default function ReviewFlow() {
                     </button>
                   </div>
                 ))}
-                <label className="w-16 h-16 rounded-xl border-2 border-dashed border-border bg-white flex flex-col items-center justify-center cursor-pointer">
-                  {uploading ? <div className="w-4 h-4 border-2 border-muted border-t-primary rounded-full animate-spin" />
-                    : <Camera className="h-5 w-5 text-muted-foreground" />}
+                <label className="w-16 h-16 rounded-xl border-2 border-dashed border-hairline/10 bg-surface flex flex-col items-center justify-center cursor-pointer">
+                  {uploading ? <div className="w-4 h-4 border-2 border-raised border-t-brand rounded-full animate-spin" />
+                    : <Camera className="h-5 w-5 text-ink-secondary" />}
                   <input type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoUpload} />
                 </label>
               </div>
@@ -250,7 +250,7 @@ export default function ReviewFlow() {
         {step === 4 && (
           <div>
             <h2 className="text-xl font-bold mb-1 text-center">Anything to add?</h2>
-            <p className="text-sm text-muted-foreground text-center mb-6">Your written review helps others decide</p>
+            <p className="text-sm text-ink-secondary text-center mb-6">Your written review helps others decide</p>
             <textarea
               value={comment}
               onChange={e => setComment(e.target.value)}
@@ -258,16 +258,16 @@ export default function ReviewFlow() {
               placeholder={overallRating >= 4
                 ? "What did you love about the service? Any specific details..."
                 : "What could have been better? Help us understand..."}
-              className="w-full bg-muted rounded-2xl px-4 py-3 text-sm outline-none resize-none mb-4"
+              className="w-full bg-raised text-ink rounded-2xl px-4 py-3 text-sm outline-none resize-none mb-4 placeholder:text-ink-tertiary"
             />
             <button onClick={() => setIsAnon(!isAnon)}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-all mb-4 ${isAnon ? 'border-primary bg-primary/5' : 'border-border bg-white'}`}>
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-all mb-4 ${isAnon ? 'border-brand bg-brand/5' : 'border-hairline/10 bg-surface'}`}>
               <div>
                 <p className="text-sm font-semibold text-left">Post anonymously</p>
-                <p className="text-xs text-muted-foreground">Your name won't be shown publicly</p>
+                <p className="text-xs text-ink-secondary">Your name won't be shown publicly</p>
               </div>
-              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isAnon ? 'border-primary bg-primary' : 'border-border'}`}>
-                {isAnon && <div className="w-2 h-2 bg-white rounded-full" />}
+              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isAnon ? 'border-brand bg-brand' : 'border-hairline/10 bg-surface'}`}>
+                {isAnon && <div className="w-2 h-2 bg-surface rounded-full" />}
               </div>
             </button>
           </div>
@@ -275,20 +275,20 @@ export default function ReviewFlow() {
       </div>
 
       {/* Bottom CTA */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-border px-5 py-4">
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-xl border-t border-hairline/10 px-5 py-4">
         <div className="max-w-lg mx-auto">
           {step < 4 ? (
             <Button
               onClick={() => { if (step === 1 && !overallRating) { toast.error('Please select a rating'); return; } setStep(s => s + 1); }}
-              className="w-full h-12 rounded-2xl text-base font-bold shadow-[0_8px_30px_rgba(20,83,45,0.15)]">
+              className="w-full h-12 rounded-2xl text-base font-bold shadow-e2 bg-brand text-ink-inverse hover:bg-brand/90">
               Continue <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           ) : (
             <div className="flex gap-2">
-              <Button onClick={() => navigate(`/booking/${bookingId}`)} variant="outline" className="flex-1 h-12 rounded-2xl">
+              <Button onClick={() => navigate(`/booking/${bookingId}`)} variant="outline" className="flex-1 h-12 rounded-2xl border-hairline/10 text-ink">
                 Skip
               </Button>
-              <Button onClick={handleSubmit} disabled={submitting} className="flex-1 h-12 rounded-2xl text-base font-bold">
+              <Button onClick={handleSubmit} disabled={submitting} className="flex-1 h-12 rounded-2xl text-base font-bold bg-brand text-ink-inverse shadow-e2 hover:bg-brand/90">
                 {submitting ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : 'Submit Review'}
               </Button>
             </div>

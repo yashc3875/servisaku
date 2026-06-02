@@ -1,0 +1,221 @@
+const delay = (ms) => new Promise(res => setTimeout(res, ms));
+
+const generateId = () => Math.random().toString(36).substr(2, 9);
+
+class MockEntity {
+  constructor(name) {
+    this.name = name;
+    this.subscribers = new Set();
+  }
+
+  _getData() {
+    const data = localStorage.getItem(`mock_${this.name}`);
+    return data ? JSON.parse(data) : [];
+  }
+
+  _saveData(data) {
+    localStorage.setItem(`mock_${this.name}`, JSON.stringify(data));
+    // Notify all subscribers whenever data changes
+    data.forEach(item => {
+      this.subscribers.forEach(sub => sub(item));
+    });
+  }
+
+  async get(id) {
+    await delay(200);
+    const data = this._getData();
+    return data.find(i => i.id === id);
+  }
+
+  async create(payload) {
+    await delay(300);
+    const data = this._getData();
+    const newItem = { id: generateId(), created_date: new Date().toISOString(), ...payload };
+    data.push(newItem);
+    this._saveData(data);
+    return newItem;
+  }
+
+  async update(id, payload) {
+    await delay(200);
+    const data = this._getData();
+    const index = data.findIndex(i => i.id === id);
+    if (index === -1) throw new Error("Not found");
+    data[index] = { ...data[index], ...payload, updated_date: new Date().toISOString() };
+    this._saveData(data);
+    return data[index];
+  }
+
+  async delete(id) {
+    await delay(200);
+    const data = this._getData();
+    const newData = data.filter(i => i.id !== id);
+    this._saveData(newData);
+  }
+
+  async filter(query = {}, orderBy = null, limit = null) {
+    await delay(200);
+    let data = this._getData();
+    
+    // Apply filters
+    for (const key in query) {
+      data = data.filter(item => item[key] === query[key]);
+    }
+
+    // Apply sorting
+    if (orderBy) {
+      data.sort((a, b) => {
+        if (a[orderBy] < b[orderBy]) return -1;
+        if (a[orderBy] > b[orderBy]) return 1;
+        return 0;
+      });
+    }
+
+    // Apply limit
+    if (limit) {
+      data = data.slice(0, limit);
+    }
+
+    return data;
+  }
+
+  subscribe(callback) {
+    this.subscribers.add(callback);
+    return () => this.subscribers.delete(callback);
+  }
+}
+
+// Mock initial data if empty
+const initializeMockData = () => {
+  if (!localStorage.getItem('mock_User')) {
+    localStorage.setItem('mock_User', JSON.stringify([
+      { id: 'admin1', email: 'admin@servisaku.demo', role: 'admin', full_name: 'Admin User' },
+      { id: 'demo1', email: 'ali@demo.com', full_name: 'Ali Ahmad', role: 'partner', partner_verified: true, partner_rating: 4.9, phone_number: '0123456789', city: 'Kuala Lumpur', bio: 'Expert cleaner.' },
+      { id: 'demo2', email: 'raj@demo.com', full_name: 'Raj Kumar', role: 'partner', partner_verified: true, partner_rating: 4.7, phone_number: '0123456788', city: 'Petaling Jaya', bio: 'Deep cleaning specialist.' },
+    ]));
+  }
+  
+  if (!localStorage.getItem('mock_Booking')) {
+    const pastDate = new Date();
+    pastDate.setDate(pastDate.getDate() - 3);
+    localStorage.setItem('mock_Booking', JSON.stringify([
+      { id: 'bk1', service_type: 'House Cleaning', consumer_name: 'John Doe', consumer_email: 'john@demo.com', partner_email: 'ali@demo.com', status: 'completed', price: 120, date: pastDate.toISOString(), created_date: pastDate.toISOString() },
+      { id: 'bk2', service_type: 'AC Servicing', consumer_name: 'Sarah Lee', consumer_email: 'sarah@demo.com', partner_email: 'raj@demo.com', status: 'completed', price: 150, date: pastDate.toISOString(), created_date: pastDate.toISOString() },
+      { id: 'bk3', service_type: 'Plumbing Repair', consumer_name: 'Mike Tan', consumer_email: 'mike@demo.com', partner_email: 'ali@demo.com', status: 'completed', price: 200, date: new Date().toISOString(), created_date: new Date().toISOString() },
+      { id: 'bk4', service_type: 'Deep Cleaning', consumer_name: 'Emma Wong', consumer_email: 'emma@demo.com', partner_email: 'raj@demo.com', status: 'disputed', price: 300, date: pastDate.toISOString(), created_date: pastDate.toISOString() },
+      { id: 'bk5', service_type: 'AC Repair', consumer_name: 'David Lim', consumer_email: 'david@demo.com', partner_email: 'raj@demo.com', status: 'completed', price: 180, date: new Date().toISOString(), created_date: new Date().toISOString() },
+      { id: 'bk6', service_type: 'Office Cleaning', consumer_name: 'Lisa Ng', consumer_email: 'lisa@demo.com', partner_email: 'ali@demo.com', status: 'pending', price: 250, date: new Date().toISOString(), created_date: new Date().toISOString() },
+    ]));
+  }
+
+  if (!localStorage.getItem('mock_EscrowLedger')) {
+    localStorage.setItem('mock_EscrowLedger', JSON.stringify([
+      { id: 'es1', booking_id: 'bk3', gross_amount: 200, platform_fee: 40, partner_payout: 160, status: 'held', created_date: new Date().toISOString() },
+      { id: 'es2', booking_id: 'bk4', gross_amount: 300, platform_fee: 60, partner_payout: 240, status: 'frozen', freeze_reason: 'Consumer filed a dispute', created_date: new Date().toISOString() },
+      { id: 'es3', booking_id: 'bk5', gross_amount: 180, platform_fee: 36, partner_payout: 144, status: 'held', created_date: new Date().toISOString() }
+    ]));
+  }
+
+  if (!localStorage.getItem('mock_RefundRequest')) {
+    localStorage.setItem('mock_RefundRequest', JSON.stringify([
+      { id: 'rf1', booking_id: 'bk4', consumer_email: 'emma@demo.com', original_amount: 300, refund_amount: 300, refund_type: 'full', status: 'pending', reason: 'Service was terrible, partner left halfway.', created_date: new Date().toISOString() },
+      { id: 'rf2', booking_id: 'bk7', consumer_email: 'fake@demo.com', original_amount: 100, refund_amount: 50, refund_type: 'partial', status: 'under_review', reason: 'They broke a small vase while cleaning.', created_date: new Date().toISOString() }
+    ]));
+  }
+
+  if (!localStorage.getItem('mock_PayoutRecord')) {
+    localStorage.setItem('mock_PayoutRecord', JSON.stringify([
+      { id: 'py1', partner_email: 'ali@demo.com', partner_name: 'Ali Ahmad', gross_earning: 120, commission_amount: 24, net_payout: 96, payout_method: 'Bank Transfer', status: 'scheduled', scheduled_date: new Date().toISOString(), created_date: new Date().toISOString() },
+      { id: 'py2', partner_email: 'raj@demo.com', partner_name: 'Raj Kumar', gross_earning: 150, commission_amount: 30, net_payout: 120, payout_method: 'Bank Transfer', status: 'failed', failure_reason: 'Bank account details invalid', created_date: new Date().toISOString() }
+    ]));
+  }
+
+  if (!localStorage.getItem('mock_Coupon')) {
+    localStorage.setItem('mock_Coupon', JSON.stringify([
+      { id: 'cp1', code: 'WELCOME20', discount_type: 'percentage', discount_value: 20, max_discount_cap: 50, min_order_amount: 100, is_active: true, created_date: new Date().toISOString() },
+      { id: 'cp2', code: 'RM50OFF', discount_type: 'fixed', discount_value: 50, min_order_amount: 200, is_active: true, created_date: new Date().toISOString() }
+    ]));
+  }
+};
+initializeMockData();
+
+export const mockClient = {
+  auth: {
+    async me() {
+      await delay(100);
+      const activeId = localStorage.getItem('mock_active_user_id');
+      if (!activeId) throw new Error("Not authenticated");
+      const users = JSON.parse(localStorage.getItem('mock_User') || '[]');
+      const user = users.find(u => u.id === activeId);
+      if (!user) throw new Error("User not found");
+      return user;
+    },
+    async loginViaEmailPassword(email, password) {
+      await delay(400);
+      const users = JSON.parse(localStorage.getItem('mock_User') || '[]');
+      const user = users.find(u => u.email === email);
+      if (!user) throw new Error("Invalid credentials");
+      localStorage.setItem('mock_active_user_id', user.id);
+      return { access_token: 'mock-token', user };
+    },
+    async loginWithProvider(provider) {
+      // Simulate OAuth success
+      await delay(500);
+      const users = JSON.parse(localStorage.getItem('mock_User') || '[]');
+      let user = users.find(u => u.email === 'google@demo.com');
+      if (!user) {
+        user = { id: generateId(), email: 'google@demo.com', full_name: 'Google Demo User', role: 'consumer' };
+        users.push(user);
+        localStorage.setItem('mock_User', JSON.stringify(users));
+      }
+      localStorage.setItem('mock_active_user_id', user.id);
+      window.location.href = '/';
+    },
+    async register(email, password, full_name) {
+      await delay(400);
+      const users = JSON.parse(localStorage.getItem('mock_User') || '[]');
+      if (users.find(u => u.email === email)) throw new Error("Email already exists");
+      const newUser = { id: generateId(), email, full_name, role: 'consumer', created_date: new Date().toISOString() };
+      users.push(newUser);
+      localStorage.setItem('mock_User', JSON.stringify(users));
+      return newUser;
+    },
+    async updateMe(data) {
+      await delay(200);
+      const activeId = localStorage.getItem('mock_active_user_id');
+      if (!activeId) throw new Error("Not authenticated");
+      const users = JSON.parse(localStorage.getItem('mock_User') || '[]');
+      const index = users.findIndex(u => u.id === activeId);
+      users[index] = { ...users[index], ...data };
+      localStorage.setItem('mock_User', JSON.stringify(users));
+      return users[index];
+    },
+    async logout() {
+      localStorage.removeItem('mock_active_user_id');
+      window.location.href = '/';
+    },
+    redirectToLogin() {
+      import('sonner').then(({ toast }) => toast.info('Redirecting to demo login...'));
+      setTimeout(() => window.location.href = '/otp-login', 1000);
+    }
+  },
+  entities: {
+    User: new MockEntity('User'),
+    Booking: new MockEntity('Booking'),
+    ChatMessage: new MockEntity('ChatMessage'),
+    PartnerLocation: new MockEntity('PartnerLocation'),
+    Coupon: new MockEntity('Coupon'),
+    Review: new MockEntity('Review'),
+    EscrowLedger: new MockEntity('EscrowLedger'),
+    RefundRequest: new MockEntity('RefundRequest'),
+    PayoutRecord: new MockEntity('PayoutRecord')
+  },
+  integrations: {
+    Core: {
+      async UploadFile({ file }) {
+        await delay(500);
+        return { file_url: URL.createObjectURL(file) };
+      }
+    }
+  }
+};

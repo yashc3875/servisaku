@@ -73,24 +73,25 @@ export default function CouponInput({ serviceType, subtotal, onApply }) {
     <div className="space-y-1.5">
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Tag className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Tag className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-secondary" />
           <input
             type="text"
             placeholder="Enter promo code"
             value={code}
             onChange={e => setCode(e.target.value.toUpperCase())}
-            className="w-full bg-white border border-border rounded-xl pl-10 pr-4 py-3 text-sm font-mono outline-none focus:ring-2 ring-primary/20"
+            onKeyDown={e => e.key === 'Enter' && handleApply()}
+            className="w-full bg-surface border border-hairline/20 rounded-xl pl-10 pr-4 py-3 text-sm font-mono outline-none focus:ring-2 ring-brand/20 shadow-e1"
           />
         </div>
         <button
           onClick={handleApply}
           disabled={!code || loading}
-          className="px-4 py-3 bg-primary text-white rounded-xl text-sm font-semibold disabled:opacity-50 flex items-center gap-1.5"
+          className="px-6 py-3 bg-brand text-white rounded-xl text-sm font-semibold disabled:opacity-50 flex items-center justify-center gap-1.5 hover:bg-brand/90 transition-colors shadow-e1"
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Apply'}
         </button>
       </div>
-      {error && <p className="text-xs text-red-500 pl-1">{error}</p>}
+      {error && <p className="text-xs text-danger pl-1 font-medium">{error}</p>}
     </div>
   );
 }

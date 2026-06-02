@@ -1,20 +1,17 @@
 import { Outlet } from 'react-router-dom';
-import BottomNav from './BottomNav';
-import SideNav from './SideNav';
+import { BottomNav } from '@/components/nav/BottomNav';
+import TopNav from './TopNav';
 
 export default function Layout() {
   return (
     <div className="font-inter min-h-screen bg-background">
-      {/* Desktop sidebar */}
-      <SideNav />
+      {/* Desktop Top Navigation */}
+      <TopNav />
 
-      {/* Main content — offset by sidebar on lg+ */}
-      <div className="lg:pl-64">
+      {/* Main content */}
+      <div className="pt-[72px]"> {/* Add padding-top to account for fixed TopNav */}
         <div
-          className="mx-auto w-full
-            max-w-lg
-            md:max-w-2xl
-            lg:max-w-none lg:px-0"
+          className="mx-auto w-full"
           style={{ paddingBottom: 'var(--nav-height, 4rem)' }}
         >
           <Outlet />

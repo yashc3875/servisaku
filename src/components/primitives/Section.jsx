@@ -1,48 +1,32 @@
-import * as React from 'react';
-import { ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React from 'react';
 import { cn } from '@/lib/utils';
+import { HStack, VStack } from './Stack';
+import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 
-/**
- * <Section title="Trending in KL" subtitle="This week" action={<SeeAllLink to="/explore" />}>
- *   ...children
- * </Section>
- */
-export function Section({
-  title,
-  subtitle,
-  action,
-  gap = 4,
-  className,
-  headerClassName,
-  children,
-}) {
-  const gapCls =
-    { 3: 'mt-3', 4: 'mt-4', 5: 'mt-5', 6: 'mt-6', 8: 'mt-8' }[gap] ?? 'mt-4';
+export function Section({ title, subtitle, action, children, className }) {
   return (
-    <section className={cn('w-full', className)}>
+    <VStack gap={4} className={cn("w-full", className)}>
       {(title || action) && (
-        <div className={cn('flex items-end justify-between gap-4', headerClassName)}>
-          <div className="min-w-0">
-            {title && <h2 className="text-h2 text-ink truncate">{title}</h2>}
-            {subtitle && <p className="text-caption text-ink-secondary mt-1">{subtitle}</p>}
-          </div>
-          {action && <div className="shrink-0">{action}</div>}
-        </div>
+        <HStack justify="between" align="center" className="px-5">
+          <VStack gap={1}>
+            {title && <h2 className="text-h2 text-ink">{title}</h2>}
+            {subtitle && <p className="text-caption text-ink-secondary">{subtitle}</p>}
+          </VStack>
+          {action && <div>{action}</div>}
+        </HStack>
       )}
-      <div className={cn(title ? gapCls : '')}>{children}</div>
-    </section>
+      <div className="w-full">
+        {children}
+      </div>
+    </VStack>
   );
 }
 
-export function SeeAllLink({ to, children = 'See all' }) {
+export function SeeAllLink({ to, label = "See All" }) {
   return (
-    <Link
-      to={to}
-      className="inline-flex items-center gap-1 text-caption font-semibold text-brand hover:text-brand-ink transition-colors"
-    >
-      {children}
-      <ArrowRight className="h-3.5 w-3.5" />
+    <Link to={to} className="flex items-center gap-1 text-brand font-semibold text-caption group">
+      {label} <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
     </Link>
   );
 }

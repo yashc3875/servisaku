@@ -39,7 +39,7 @@ export default function AdminQualityCenter() {
   const [loading, setLoading] = useState(true);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [adminNote, setAdminNote] = useState('');
-  const [actionStatus, setActionStatus] = useState('');
+  const [_actionStatus, _setActionStatus] = useState('');
 
   useEffect(() => {
     Promise.all([

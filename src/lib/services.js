@@ -29,9 +29,15 @@ const LEGACY_COLOR = {
    keep the existing Unsplash URLs so the old Home/ServiceDetail surfaces
    continue to render an actual image until Sprint 3 ships the new assets. */
 const LEGACY_IMAGE = {
-  cleaning: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=80',
-  ac:       'https://media.base44.com/images/public/6a1572582a8e67fb23e0b043/fbc9e7de4_ac.jpg',
-  plumbing: 'https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=400&q=80',
+  cleaning: '/service-cleaning.jpg',
+  ac:       '/service-ac.jpg',
+  plumbing: '/service-plumbing.jpg',
+};
+
+const LEGACY_HEADER_IMAGE = {
+  cleaning: '/hero-cleaning.png',
+  ac:       '/hero-ac.png',
+  plumbing: '/hero-plumbing.png',
 };
 
 const LEGACY_DURATION = {
@@ -54,6 +60,7 @@ function toLegacy(category) {
     description: category.tagline,
     descriptionMy: category.taglineMy,
     image: LEGACY_IMAGE[category.slug] || category.heroImage,
+    headerImage: LEGACY_HEADER_IMAGE[category.slug],
     priceRange: [category.priceFrom, maxPrice],
     duration: LEGACY_DURATION[category.slug] || '1-3 hours',
   };
@@ -65,7 +72,7 @@ const MIGRATED = CATEGORIES.map(toLegacy);
 /* Re-route AC slug 'ac' -> legacy id 'ac-servicing' so existing /service/ac-servicing
    routes keep working. We expose both ids that point at the same entry. */
 const AC = MIGRATED.find((s) => s.id === 'ac');
-const acAlias = AC ? [{ ...AC, id: 'ac-servicing' }] : [];
+const acAlias = AC ? [{ ...AC, id: 'ac-servicing', _alias: true }] : [];
 
 /* Unmigrated categories preserved verbatim from the original Base44 export so
    that routes like /service/electrical, /service/painting, /service/pest-control
@@ -74,14 +81,15 @@ const acAlias = AC ? [{ ...AC, id: 'ac-servicing' }] : [];
 const UNMIGRATED = [
   {
     id: 'electrical',
-    name: 'Electrical',
-    nameMy: 'Elektrikal',
+    name: 'Electrical Services',
+    nameMy: 'Perkhidmatan Elektrik',
     icon: Zap,
     color: LEGACY_COLOR.electrical,
     price: 'From RM79',
     description: 'Wiring, repairs, and electrical installations',
     descriptionMy: 'Pendawaian, pembaikan dan pemasangan elektrik',
-    image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400&q=80',
+    image: '/service-electrical.jpg',
+    headerImage: '/hero-electrical.png',
     priceRange: [79, 599],
     duration: '1-4 hours',
   },
@@ -94,7 +102,8 @@ const UNMIGRATED = [
     price: 'From RM199',
     description: 'Interior and exterior painting services',
     descriptionMy: 'Perkhidmatan mengecat dalaman dan luaran',
-    image: 'https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=400&q=80',
+    image: '/service-painting.jpg',
+    headerImage: '/hero-painting.png',
     priceRange: [199, 1999],
     duration: '1-3 days',
   },
@@ -107,7 +116,8 @@ const UNMIGRATED = [
     price: 'From RM99',
     description: 'Termite, cockroach, and mosquito control',
     descriptionMy: 'Kawalan anai-anai, lipas dan nyamuk',
-    image: 'https://media.base44.com/images/public/6a1572582a8e67fb23e0b043/e20b6023f_pest.jpg',
+    image: '/service-pest-control.jpg',
+    headerImage: '/hero-pest-control.png',
     priceRange: [99, 699],
     duration: '1-2 hours',
   },
@@ -116,7 +126,7 @@ const UNMIGRATED = [
 /* The legacy 'cleaning' slug was 'home-cleaning' in the original Base44 export.
    Expose both ids so existing routes and bookings continue to resolve. */
 const CLEANING = MIGRATED.find((s) => s.id === 'cleaning');
-const cleaningAlias = CLEANING ? [{ ...CLEANING, id: 'home-cleaning' }] : [];
+const cleaningAlias = CLEANING ? [{ ...CLEANING, id: 'home-cleaning', _alias: true }] : [];
 
 export const SERVICES = [
   ...cleaningAlias,   // 'home-cleaning' (legacy id)
@@ -124,6 +134,8 @@ export const SERVICES = [
   ...acAlias,         // 'ac-servicing' (legacy id)
   ...UNMIGRATED,      // 'electrical', 'painting', 'pest-control'
 ];
+
+export const SERVICES_DISPLAY = SERVICES.filter((s) => !s._alias);
 
 export const CITIES = [
   'Kuala Lumpur', 'Petaling Jaya', 'Shah Alam', 'Subang Jaya',

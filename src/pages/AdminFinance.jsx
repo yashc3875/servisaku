@@ -61,7 +61,7 @@ export default function AdminFinance() {
     toast.success(`Refund ${status}`);
   };
 
-  const handleReleaseEscrow = async (escrowId, bookingId) => {
+  const handleReleaseEscrow = async (escrowId, _bookingId) => {
     await base44.entities.EscrowLedger.update(escrowId, {
       status: 'released',
       released_at: new Date().toISOString(),

@@ -151,8 +151,8 @@ export default function AdminCommunications() {
   };
 
   // Delivery analytics
-  const totalSent = logs.filter(l => l.status === 'sent').length;
-  const totalFailed = logs.filter(l => l.status === 'failed').length;
+  const _totalSent = logs.filter(l => l.status === 'sent').length;
+  const _totalFailed = logs.filter(l => l.status === 'failed').length;
   const byChannel = ['in_app', 'email', 'sms', 'push'].map(ch => ({
     channel: ch,
     count: logs.filter(l => l.channel === ch).length,

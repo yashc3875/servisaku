@@ -66,6 +66,7 @@ export const CategorySchema = z.object({
   iconKey: z.string(),
   accent: AccentTone,
   heroImage: z.string(),
+  headerImage: z.string().optional(),
   subcategories: z.array(SubcategorySchema),
   emergencySupported: z.boolean(),
   recurringSupported: z.boolean(),

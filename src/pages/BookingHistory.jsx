@@ -28,9 +28,9 @@ export default function BookingHistory() {
   ];
 
   return (
-    <div className="font-inter min-h-screen bg-background">
+    <div className="font-inter min-h-screen bg-bg">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-2xl border-b border-border/30 px-5 lg:px-8 pt-12 lg:pt-4 pb-0">
+      <div className="sticky top-0 z-10 bg-bg/80 backdrop-blur-2xl border-b border-hairline/10 px-5 lg:px-8 pt-12 lg:pt-4 pb-0">
         <h1 className="text-2xl font-bold tracking-tight mb-5">My Bookings</h1>
 
         {/* Tab bar */}
@@ -41,14 +41,14 @@ export default function BookingHistory() {
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-t-xl transition-all duration-200 ${
                 tab === t.id
-                  ? 'text-primary border-b-2 border-primary bg-transparent'
-                  : 'text-muted-foreground'
+                  ? 'text-brand border-b-2 border-brand bg-transparent'
+                  : 'text-ink-secondary'
               }`}
             >
               <t.icon className="h-3.5 w-3.5" />
               {t.label}
               <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-                tab === t.id ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
+                tab === t.id ? 'bg-brand-tint text-brand' : 'bg-raised text-ink-secondary'
               }`}>{t.count}</span>
             </button>
           ))}
@@ -59,15 +59,15 @@ export default function BookingHistory() {
         {loading ? (
           <div className="space-y-3">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-border/60 p-5 space-y-3 animate-pulse">
+              <div key={i} className="bg-surface rounded-2xl border border-hairline/10 p-5 space-y-3 animate-pulse">
                 <div className="flex gap-3">
-                  <div className="w-11 h-11 bg-muted rounded-xl" />
+                  <div className="w-11 h-11 bg-raised rounded-xl" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-3.5 bg-muted rounded-full w-1/2" />
-                    <div className="h-3 bg-muted rounded-full w-1/3" />
+                    <div className="h-3.5 bg-raised rounded-full w-1/2" />
+                    <div className="h-3 bg-raised rounded-full w-1/3" />
                   </div>
                 </div>
-                <div className="h-3 bg-muted rounded-full w-3/4" />
+                <div className="h-3 bg-raised rounded-full w-3/4" />
               </div>
             ))}
           </div>
@@ -77,11 +77,11 @@ export default function BookingHistory() {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center text-center py-20">
-            <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mb-5">
-              <CalendarDays className="h-7 w-7 text-muted-foreground" />
+            <div className="w-16 h-16 bg-raised rounded-2xl flex items-center justify-center mb-5">
+              <CalendarDays className="h-7 w-7 text-ink-secondary" />
             </div>
             <p className="font-bold text-base mb-1.5">No {tab === 'active' ? 'active' : 'past'} bookings</p>
-            <p className="text-sm text-muted-foreground max-w-xs">
+            <p className="text-sm text-ink-secondary max-w-xs">
               {tab === 'active' ? 'Book a service to get started' : 'Your completed bookings will appear here'}
             </p>
           </div>

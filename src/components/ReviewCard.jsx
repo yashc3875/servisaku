@@ -17,7 +17,7 @@ function StarRow({ rating, size = 'sm' }) {
   );
 }
 
-export default function ReviewCard({ review, showPartner = false, currentUserEmail, onEdit }) {
+export default function ReviewCard({ review, _showPartner = false, currentUserEmail, onEdit }) {
   const [helpful, setHelpful] = useState(review.helpful_count || 0);
   const [voted, setVoted] = useState(false);
   const isOwn = review.consumer_email === currentUserEmail;

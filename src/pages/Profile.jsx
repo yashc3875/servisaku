@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Settings, Shield, LogOut, ChevronRight, Star, Wrench, Users, Edit3, Bell } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { motion } from 'framer-motion';
+import { variants, safeMotion } from '@/lib/design/motion';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -10,7 +13,7 @@ export default function Profile() {
 
   if (!user) return (
     <div className="flex justify-center items-center min-h-screen">
-      <div className="w-6 h-6 border-2 border-muted border-t-primary rounded-full animate-spin" />
+      <div className="w-6 h-6 border-2 border-raised border-t-brand rounded-full animate-spin" />
     </div>
   );
 
@@ -53,20 +56,18 @@ export default function Profile() {
   const initials = user.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'U';
 
   return (
-    <div className="font-inter min-h-screen bg-background pb-8">
+    <motion.div {...safeMotion(variants.fadeUp)} className="font-inter min-h-screen bg-bg pb-8">
 
-      {/* Hero header */}
-      <div className="relative bg-gradient-to-br from-[#0a3d28] to-[#1a6644] px-5 pt-14 pb-10 overflow-hidden">
-        <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/5" />
-        <div className="absolute -bottom-6 -left-6 w-32 h-32 rounded-full bg-white/5" />
-        <div className="relative flex flex-col items-center text-center">
-          <div className="w-20 h-20 rounded-2xl bg-white/15 flex items-center justify-center mb-4 ring-4 ring-white/20">
-            <span className="text-2xl font-bold text-white">{initials}</span>
+      {/* Hero header — clean neutral card */}
+      <div className="bg-bg pt-14 lg:pt-6 pb-8 px-5">
+        <div className="flex flex-col items-center text-center">
+          <div className="w-20 h-20 rounded-2xl bg-brand-tint flex items-center justify-center ring-4 ring-brand/10 mb-4">
+            <span className="text-2xl font-bold text-brand-ink">{initials}</span>
           </div>
-          <h2 className="text-xl font-bold text-white tracking-tight">{user.full_name}</h2>
-          <p className="text-white/50 text-sm mt-1">{user.email}</p>
+          <h2 className="text-xl font-bold text-ink tracking-tight">{user.full_name}</h2>
+          <p className="text-ink-tertiary text-sm mt-1">{user.email}</p>
           {user.role !== 'consumer' && (
-            <span className="mt-3 inline-flex items-center bg-white/15 text-white/90 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full capitalize">
+            <span className="mt-3 inline-flex items-center bg-brand-tint text-brand-ink text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full capitalize">
               {user.role.replace('_', ' ')}
             </span>
           )}
@@ -74,24 +75,24 @@ export default function Profile() {
       </div>
 
       {/* Menu groups */}
-      <div className="px-5 -mt-4 space-y-5">
+      <div className="px-5 space-y-5">
         {menuGroups.map((group, gi) => (
           <div key={gi}>
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2 px-1">{group.title}</p>
-            <div className="bg-white rounded-2xl border border-border/60 shadow-xs overflow-hidden">
+            <p className="text-[10px] font-bold text-ink-secondary uppercase tracking-widest mb-2 px-1">{group.title}</p>
+            <div className="bg-surface rounded-2xl border border-hairline/10 shadow-e1 overflow-hidden">
               {group.items.map((item, i) => {
                 const Icon = item.icon;
                 return (
                   <Link key={i} to={item.to}
-                    className="flex items-center gap-4 px-5 py-4 border-b border-border/40 last:border-0 hover:bg-muted/30 active:bg-muted/50 transition-colors">
-                    <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center shrink-0">
-                      <Icon className="h-4 w-4 text-foreground/70" />
+                    className="flex items-center gap-4 px-5 py-4 border-b border-hairline/10 last:border-0 hover:bg-raised/60 active:bg-raised/80 transition-colors">
+                    <div className="w-9 h-9 rounded-xl bg-raised flex items-center justify-center shrink-0">
+                      <Icon className="h-4 w-4 text-ink/70" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold">{item.label}</p>
-                      {item.sub && <p className="text-xs text-muted-foreground mt-0.5">{item.sub}</p>}
+                      <p className="text-sm font-semibold text-ink">{item.label}</p>
+                      {item.sub && <p className="text-xs text-ink-secondary mt-0.5">{item.sub}</p>}
                     </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <ChevronRight className="h-4 w-4 text-ink-secondary shrink-0" />
                   </Link>
                 );
               })}
@@ -99,8 +100,16 @@ export default function Profile() {
           </div>
         ))}
 
+        {/* Appearance */}
+        <div>
+          <p className="text-[10px] font-bold text-ink-secondary uppercase tracking-widest mb-2 px-1">Appearance</p>
+          <div className="bg-surface rounded-2xl border border-hairline/10 shadow-e1 p-2">
+             <ThemeToggle />
+          </div>
+        </div>
+
         {/* Sign out */}
-        <div className="bg-white rounded-2xl border border-border/60 shadow-xs overflow-hidden">
+        <div className="bg-surface rounded-2xl border border-hairline/10 shadow-e1 overflow-hidden">
           <button
             onClick={() => base44.auth.logout()}
             className="flex items-center gap-4 px-5 py-4 w-full hover:bg-red-50 active:bg-red-100 transition-colors">
@@ -111,10 +120,10 @@ export default function Profile() {
           </button>
         </div>
 
-        <p className="text-center text-[10px] text-muted-foreground/60 pt-2">
+        <p className="text-center text-[10px] text-ink-tertiary pt-2">
           ServisAku v1.0 &nbsp;·&nbsp; Klang Valley, Malaysia
         </p>
       </div>
-    </div>
+    </motion.div>
   );
 }

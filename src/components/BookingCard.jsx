@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { variants } from '@/lib/design/motion';
 import { CalendarDays, Clock, MapPin, ChevronRight } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import { SERVICES } from '@/lib/services';
@@ -9,9 +11,10 @@ export default function BookingCard({ booking }) {
   const Icon = service?.icon || CalendarDays;
 
   return (
-    <Link to={`/booking/${booking.id}`}
-      className="flex items-center gap-3 bg-white rounded-3xl border border-border p-4 shadow-card hover:shadow-card-hover transition-all duration-200 group">
-      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${service?.color || 'bg-muted text-muted-foreground'}`}>
+    <motion.div whileHover={variants.pressable.whileHover} whileTap={variants.pressable.whileTap}>
+      <Link to={`/booking/${booking.id}`}
+        className="flex items-center gap-3 bg-surface rounded-xl p-4 shadow-e1 hover:shadow-e2 transition-all duration-200 group">
+      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${service?.color || 'bg-muted text-muted-foreground'}`}>
         <Icon className="h-5 w-5" />
       </div>
       <div className="flex-1 min-w-0">
@@ -33,7 +36,8 @@ export default function BookingCard({ booking }) {
           )}
         </div>
       </div>
-      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-brand transition-colors shrink-0" />
     </Link>
+    </motion.div>
   );
 }
