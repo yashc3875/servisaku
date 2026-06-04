@@ -85,14 +85,20 @@ class MockEntity {
   }
 }
 
+// ── Hardcoded demo credentials (always work, even offline) ──
+const DEMO_USERS = {
+  'user@servisaku.my':    { id: 'user-demo-1',    password: 'user123',    email: 'user@servisaku.my',    full_name: 'Demo User',      role: 'consumer', city: 'Kuala Lumpur' },
+  'admin@servisaku.my':   { id: 'admin-demo-1',   password: 'admin123',   email: 'admin@servisaku.my',   full_name: 'Admin ServisAku', role: 'admin',    city: 'Kuala Lumpur' },
+  'ali@servisaku.my':     { id: 'partner-demo-1', password: 'partner123', email: 'ali@servisaku.my',     full_name: 'Ali Ahmad',       role: 'partner',  city: 'Kuala Lumpur', partner_verified: true, partner_rating: 4.9, bio: 'Expert home cleaner with 5 years experience.' },
+  'raj@servisaku.my':     { id: 'partner-demo-2', password: 'partner123', email: 'raj@servisaku.my',     full_name: 'Raj Kumar',       role: 'partner',  city: 'Petaling Jaya', partner_verified: true, partner_rating: 4.7, bio: 'AC servicing and deep cleaning specialist.' },
+  'chong@servisaku.my':   { id: 'partner-demo-3', password: 'partner123', email: 'chong@servisaku.my',   full_name: 'David Chong',     role: 'partner',  city: 'Subang Jaya',   partner_verified: true, partner_rating: 5.0, bio: 'Professional pest control and exterminator.' },
+  'siti@servisaku.my':    { id: 'partner-demo-4', password: 'partner123', email: 'siti@servisaku.my',    full_name: 'Siti Nurhaliza',  role: 'partner',  city: 'Kuala Lumpur',  partner_verified: true, partner_rating: 4.8, bio: 'Plumbing and home repair expert.' },
+};
+
 // Mock initial data if empty
 const initializeMockData = () => {
   if (!localStorage.getItem('mock_User')) {
-    localStorage.setItem('mock_User', JSON.stringify([
-      { id: 'admin1', email: 'admin@servisaku.demo', role: 'admin', full_name: 'Admin User' },
-      { id: 'demo1', email: 'ali@demo.com', full_name: 'Ali Ahmad', role: 'partner', partner_verified: true, partner_rating: 4.9, phone_number: '0123456789', city: 'Kuala Lumpur', bio: 'Expert cleaner.' },
-      { id: 'demo2', email: 'raj@demo.com', full_name: 'Raj Kumar', role: 'partner', partner_verified: true, partner_rating: 4.7, phone_number: '0123456788', city: 'Petaling Jaya', bio: 'Deep cleaning specialist.' },
-    ]));
+    localStorage.setItem('mock_User', JSON.stringify(Object.values(DEMO_USERS).map(u => ({ ...u, id: u.id, created_date: new Date().toISOString() }))));
   }
   
   if (!localStorage.getItem('mock_Booking')) {
@@ -143,6 +149,13 @@ export const mockClient = {
   auth: {
     async me() {
       await delay(100);
+      // Check token-based session first
+      const tokenEmail = localStorage.getItem('mock_auth_email');
+      if (tokenEmail) {
+        const demo = DEMO_USERS[tokenEmail];
+        if (demo) return { ...demo };
+      }
+      // Fallback to legacy id session
       const activeId = localStorage.getItem('mock_active_user_id');
       if (!activeId) throw new Error("Not authenticated");
       const users = JSON.parse(localStorage.getItem('mock_User') || '[]');
@@ -152,11 +165,22 @@ export const mockClient = {
     },
     async loginViaEmailPassword(email, password) {
       await delay(400);
+      // Check hardcoded demo users first
+      const demo = DEMO_USERS[email];
+      if (demo) {
+        if (demo.password !== password) throw new Error('Invalid credentials');
+        localStorage.setItem('mock_auth_email', email);
+        localStorage.setItem('mock_active_user_id', demo.id);
+        localStorage.setItem('auth_token', 'mock-jwt-' + demo.id);
+        return { access_token: 'mock-jwt-' + demo.id, user: { ...demo } };
+      }
+      // Then check dynamic users
       const users = JSON.parse(localStorage.getItem('mock_User') || '[]');
       const user = users.find(u => u.email === email);
-      if (!user) throw new Error("Invalid credentials");
+      if (!user) throw new Error('Invalid credentials');
       localStorage.setItem('mock_active_user_id', user.id);
-      return { access_token: 'mock-token', user };
+      localStorage.setItem('auth_token', 'mock-jwt-' + user.id);
+      return { access_token: 'mock-jwt-' + user.id, user };
     },
     async loginWithProvider(provider) {
       // Simulate OAuth success
@@ -192,6 +216,8 @@ export const mockClient = {
     },
     async logout() {
       localStorage.removeItem('mock_active_user_id');
+      localStorage.removeItem('mock_auth_email');
+      localStorage.removeItem('auth_token');
       window.location.href = '/';
     },
     redirectToLogin() {

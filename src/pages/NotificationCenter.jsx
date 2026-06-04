@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Bell, CheckCheck, Search, Filter, Trash2, BookOpen, CreditCard, MessageSquare, Settings, Megaphone, X } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import moment from 'moment';
 
 const TYPE_META = {
@@ -55,13 +55,13 @@ export default function NotificationCenter() {
   const [showFilter, setShowFilter] = useState(false);
 
   useEffect(() => {
-    base44.auth.me().then(async u => {
+    servisaku.auth.me().then(async u => {
       setUser(u);
-      const notifs = await base44.entities.Notification.filter({ user_email: u.email }, '-created_date', 100);
+      const notifs = await servisaku.entities.Notification.filter({ user_email: u.email }, '-created_date', 100);
       setNotifications(notifs);
       setLoading(false);
     });
-    const unsub = base44.entities.Notification.subscribe(event => {
+    const unsub = servisaku.entities.Notification.subscribe(event => {
       if (event.type === 'create') setNotifications(prev => [event.data, ...prev]);
       if (event.type === 'update') setNotifications(prev => prev.map(n => n.id === event.id ? event.data : n));
     });
@@ -70,20 +70,20 @@ export default function NotificationCenter() {
 
   const handleRead = async (n) => {
     if (!n.is_read) {
-      await base44.entities.Notification.update(n.id, { is_read: true, read_at: new Date().toISOString() });
+      await servisaku.entities.Notification.update(n.id, { is_read: true, read_at: new Date().toISOString() });
       setNotifications(prev => prev.map(x => x.id === n.id ? { ...x, is_read: true } : x));
     }
     if (n.reference_id && n.reference_type === 'booking') navigate(`/booking/${n.reference_id}`);
   };
 
   const handleDelete = async (n) => {
-    await base44.entities.Notification.delete(n.id);
+    await servisaku.entities.Notification.delete(n.id);
     setNotifications(prev => prev.filter(x => x.id !== n.id));
   };
 
   const markAllRead = async () => {
     for (const n of notifications.filter(x => !x.is_read)) {
-      await base44.entities.Notification.update(n.id, { is_read: true, read_at: new Date().toISOString() });
+      await servisaku.entities.Notification.update(n.id, { is_read: true, read_at: new Date().toISOString() });
     }
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
   };

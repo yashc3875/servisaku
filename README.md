@@ -1,39 +1,40 @@
-**Welcome to your Base44 project** 
+# ServisAku — Malaysia Home & Lifestyle Services Platform
 
-**About**
+A modern home services aggregator for Malaysia, built with React + Vite (frontend) and Express + Prisma (backend).
 
-View and Edit  your app on [Base44.com](http://Base44.com) 
+## 🚀 Getting Started
 
-This project contains everything you need to run your app locally.
-
-**Edit the code in your local development environment**
-
-Any change pushed to the repo will also be reflected in the Base44 Builder.
-
-**Prerequisites:** 
-
-1. Clone the repository using the project's Git URL 
-2. Navigate to the project directory
-3. Install dependencies: `npm install`
-4. Create an `.env.local` file and set the right environment variables
-
-```
-VITE_BASE44_APP_ID=your_app_id
-VITE_BASE44_APP_BASE_URL=your_backend_url
-
-e.g.
-VITE_BASE44_APP_ID=cbef744a8545c389ef439ea6
-VITE_BASE44_APP_BASE_URL=https://my-to-do-list-81bfaad7.base44.app
+### Development (frontend only)
+```bash
+npm install
+npm run dev
 ```
 
-Run the app: `npm run dev`
+### Development (frontend + backend)
+```bash
+npm install
+npm run dev:all
+```
 
-**Publish your changes**
+### Database setup
+```bash
+npm run db:migrate   # run migrations
+npm run db:seed      # seed demo data
+```
 
-Open [Base44.com](http://Base44.com) and click on Publish.
+## 🔐 Demo Credentials
 
-**Docs & Support**
+| Role    | Email                    | Password    |
+|---------|--------------------------|-------------|
+| User    | user@servisaku.my        | user123     |
+| Admin   | admin@servisaku.my       | admin123    |
+| Partner | ali@servisaku.my         | partner123  |
+| Partner | raj@servisaku.my         | partner123  |
+| Partner | chong@servisaku.my       | partner123  |
+| Partner | siti@servisaku.my        | partner123  |
 
-Documentation: [https://docs.base44.com/Integrations/Using-GitHub](https://docs.base44.com/Integrations/Using-GitHub)
+## 🌐 Netlify Deployment
 
-Support: [https://app.base44.com/support](https://app.base44.com/support)
+The app deploys seamlessly to Netlify as a static frontend. When the backend is offline, it automatically switches to a local demo mode using the credentials above.
+
+The `public/_redirects` file ensures React Router works correctly on Netlify.

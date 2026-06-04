@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, MapPin, Globe, Heart, Shield, LogOut, ChevronRight, Plus, Trash2, Star, Bell } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { CITIES } from '@/lib/services';
@@ -26,11 +26,11 @@ export default function ConsumerProfile() {
 
   useEffect(() => {
     const load = async () => {
-      const me = await base44.auth.me();
+      const me = await servisaku.auth.me();
       setUser(me);
       setCity(me.city || '');
       setLanguage(me.language || 'en');
-      const addrs = await base44.entities.Address.filter({ user_email: me.email });
+      const addrs = await servisaku.entities.Address.filter({ user_email: me.email });
       setAddresses(addrs);
     };
     load();
@@ -40,7 +40,7 @@ export default function ConsumerProfile() {
 
   const handleSaveProfile = async () => {
     setSaving(true);
-    await base44.auth.updateMe({ city, language });
+    await servisaku.auth.updateMe({ city, language });
     await checkUserAuth();
     toast.success('Profile updated!');
     setSaving(false);
@@ -48,8 +48,8 @@ export default function ConsumerProfile() {
 
   const handleAddAddress = async () => {
     if (!newAddr.street || !newAddr.city) return toast.error('Please fill address details');
-    const me = await base44.auth.me();
-    const created = await base44.entities.Address.create({ ...newAddr, user_email: me.email });
+    const me = await servisaku.auth.me();
+    const created = await servisaku.entities.Address.create({ ...newAddr, user_email: me.email });
     setAddresses(a => [...a, created]);
     setNewAddr({ label: '', street: '', area: '', city: '', postcode: '' });
     setShowAddAddress(false);
@@ -57,7 +57,7 @@ export default function ConsumerProfile() {
   };
 
   const handleDeleteAddress = async (id) => {
-    await base44.entities.Address.delete(id);
+    await servisaku.entities.Address.delete(id);
     setAddresses(a => a.filter(addr => addr.id !== id));
     toast.success('Address removed');
   };
@@ -213,7 +213,7 @@ export default function ConsumerProfile() {
           ))}
 
           <div className="pt-2">
-            <button onClick={() => base44.auth.logout()}
+            <button onClick={() => servisaku.auth.logout()}
               className="w-full flex items-center justify-center gap-2 h-11 rounded-xl border border-danger/30 text-danger text-sm font-medium hover:bg-danger/5 transition-colors">
               <LogOut className="h-4 w-4" /> Sign Out
             </button>

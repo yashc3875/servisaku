@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 
 export function useRealtimeBooking(bookingId) {
   const [booking, setBooking] = useState(null);
@@ -7,9 +7,9 @@ export function useRealtimeBooking(bookingId) {
 
   useEffect(() => {
     if (!bookingId) return;
-    base44.entities.Booking.get(bookingId).then(b => { setBooking(b); setLoading(false); });
+    servisaku.entities.Booking.get(bookingId).then(b => { setBooking(b); setLoading(false); });
 
-    const unsub = base44.entities.Booking.subscribe(event => {
+    const unsub = servisaku.entities.Booking.subscribe(event => {
       if (event.id === bookingId && (event.type === 'update' || event.type === 'create')) {
         setBooking(event.data);
       }
@@ -25,10 +25,10 @@ export function usePartnerLocation(partnerEmail) {
 
   useEffect(() => {
     if (!partnerEmail) return;
-    base44.entities.PartnerLocation.filter({ partner_email: partnerEmail })
+    servisaku.entities.PartnerLocation.filter({ partner_email: partnerEmail })
       .then(locs => { if (locs[0]) setLocation(locs[0]); });
 
-    const unsub = base44.entities.PartnerLocation.subscribe(event => {
+    const unsub = servisaku.entities.PartnerLocation.subscribe(event => {
       if (event.data?.partner_email === partnerEmail) setLocation(event.data);
     });
     return unsub;
@@ -41,11 +41,11 @@ export function useActiveBookings() {
   const [bookings, setBookings] = useState([]);
 
   useEffect(() => {
-    base44.entities.Booking.filter({}).then(all => {
+    servisaku.entities.Booking.filter({}).then(all => {
       setBookings(all.filter(b => !['completed', 'cancelled'].includes(b.status)));
     });
 
-    const unsub = base44.entities.Booking.subscribe(event => {
+    const unsub = servisaku.entities.Booking.subscribe(event => {
       if (event.type === 'create') {
         setBookings(prev => ['completed', 'cancelled'].includes(event.data.status)
           ? prev : [event.data, ...prev]);
@@ -69,8 +69,8 @@ export function useOnlinePartners() {
   const [partners, setPartners] = useState([]);
 
   useEffect(() => {
-    base44.entities.PartnerLocation.filter({ is_online: true }).then(setPartners);
-    const unsub = base44.entities.PartnerLocation.subscribe(event => {
+    servisaku.entities.PartnerLocation.filter({ is_online: true }).then(setPartners);
+    const unsub = servisaku.entities.PartnerLocation.subscribe(event => {
       if (event.type === 'update' || event.type === 'create') {
         setPartners(prev => {
           const filtered = prev.filter(p => p.id !== event.id);
@@ -90,10 +90,10 @@ export function useLiveNotifications(userEmail) {
 
   useEffect(() => {
     if (!userEmail) return;
-    base44.entities.Notification.filter({ user_email: userEmail, is_read: false }, '-created_date', 20)
+    servisaku.entities.Notification.filter({ user_email: userEmail, is_read: false }, '-created_date', 20)
       .then(n => { setNotifications(n); setUnreadCount(n.length); });
 
-    const unsub = base44.entities.Notification.subscribe(event => {
+    const unsub = servisaku.entities.Notification.subscribe(event => {
       if (event.data?.user_email === userEmail && event.type === 'create') {
         setNotifications(prev => [event.data, ...prev]);
         setUnreadCount(c => c + 1);
@@ -107,7 +107,7 @@ export function useLiveNotifications(userEmail) {
 
   const markAllRead = async () => {
     for (const n of notifications.filter(n => !n.is_read)) {
-      await base44.entities.Notification.update(n.id, { is_read: true, read_at: new Date().toISOString() });
+      await servisaku.entities.Notification.update(n.id, { is_read: true, read_at: new Date().toISOString() });
     }
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
     setUnreadCount(0);

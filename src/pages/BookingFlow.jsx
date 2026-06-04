@@ -7,7 +7,7 @@ import {
   User, Users, MapPin, Home, ChevronRight, Star, BadgeCheck, Tag,
   Clock, Maximize
 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import { SERVICES, CITIES } from '@/lib/services';
 import {
   SLOT_GROUPS, PROPERTY_TYPES, BEDROOM_OPTIONS,
@@ -52,8 +52,8 @@ export default function BookingFlow() {
   const fileRef = useRef();
 
   useEffect(() => {
-    base44.auth.me().then(me => { setUser(me); if (me.city) setCity(me.city); });
-    base44.entities.User.filter({ role: 'partner', partner_verified: true }).then((ps) => {
+    servisaku.auth.me().then(me => { setUser(me); if (me.city) setCity(me.city); });
+    servisaku.entities.User.filter({ role: 'partner', partner_verified: true }).then((ps) => {
       if (ps.length === 0) {
         // Fallback to hardcoded demo partners to avoid permission errors when unauthenticated
         setPartners([
@@ -83,7 +83,7 @@ export default function BookingFlow() {
   const handlePhotoUpload = async (files) => {
     if (photos.length >= 3) { toast.error('Max 3 photos allowed'); return; }
     for (const file of Array.from(files).slice(0, 3 - photos.length)) {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const { file_url } = await servisaku.integrations.Core.UploadFile({ file });
       setPhotos(prev => [...prev, file_url]);
       toast.success('Photo uploaded');
     }
@@ -96,7 +96,7 @@ export default function BookingFlow() {
     }
     setSubmitting(true);
     try {
-      const booking = await base44.entities.Booking.create({
+      const booking = await servisaku.entities.Booking.create({
         service_type: service.name,
         consumer_email: user.email,
         consumer_name: user.full_name || 'Guest',

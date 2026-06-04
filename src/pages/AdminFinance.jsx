@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import {
   ArrowLeft, AlertTriangle
 } from 'lucide-react';
@@ -22,10 +22,10 @@ export default function AdminFinance() {
 
   useEffect(() => {
     Promise.all([
-      base44.entities.Booking.list('-created_date', 200),
-      base44.entities.EscrowLedger.list('-created_date', 100),
-      base44.entities.RefundRequest.list('-created_date', 100),
-      base44.entities.PayoutRecord.list('-created_date', 100),
+      servisaku.entities.Booking.list('-created_date', 200),
+      servisaku.entities.EscrowLedger.list('-created_date', 100),
+      servisaku.entities.RefundRequest.list('-created_date', 100),
+      servisaku.entities.PayoutRecord.list('-created_date', 100),
     ]).then(([b, e, r, p]) => {
       setBookings(b); setEscrows(e); setRefunds(r); setPayouts(p);
       setLoading(false);
@@ -51,7 +51,7 @@ export default function AdminFinance() {
 
   const handleRefundAction = async (refundId, action) => {
     const status = action === 'approve' ? 'approved' : 'rejected';
-    await base44.entities.RefundRequest.update(refundId, {
+    await servisaku.entities.RefundRequest.update(refundId, {
       status,
       reviewed_by: 'admin',
       reviewed_at: new Date().toISOString(),
@@ -62,7 +62,7 @@ export default function AdminFinance() {
   };
 
   const handleReleaseEscrow = async (escrowId, _bookingId) => {
-    await base44.entities.EscrowLedger.update(escrowId, {
+    await servisaku.entities.EscrowLedger.update(escrowId, {
       status: 'released',
       released_at: new Date().toISOString(),
       released_by: 'admin',
@@ -72,7 +72,7 @@ export default function AdminFinance() {
   };
 
   const handleProcessPayout = async (payoutId) => {
-    await base44.entities.PayoutRecord.update(payoutId, {
+    await servisaku.entities.PayoutRecord.update(payoutId, {
       status: 'paid',
       paid_at: new Date().toISOString(),
       reference_no: `REF${Date.now()}`,

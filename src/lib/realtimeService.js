@@ -1,18 +1,18 @@
 // FixMate Realtime Service — Base44 entity subscriptions + Geolocation
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 
 // ─── Presence ──────────────────────────────────────────────────────────────
 let heartbeatTimer = null;
 
 export async function goOnline(user) {
-  const existing = await base44.entities.PartnerLocation.filter({ partner_email: user.email });
+  const existing = await servisaku.entities.PartnerLocation.filter({ partner_email: user.email });
   if (existing.length > 0) {
-    await base44.entities.PartnerLocation.update(existing[0].id, {
+    await servisaku.entities.PartnerLocation.update(existing[0].id, {
       is_online: true, last_seen: new Date().toISOString(),
       partner_name: user.full_name,
     });
   } else {
-    await base44.entities.PartnerLocation.create({
+    await servisaku.entities.PartnerLocation.create({
       partner_email: user.email, partner_name: user.full_name,
       is_online: true, is_on_job: false, last_seen: new Date().toISOString(),
     });
@@ -22,9 +22,9 @@ export async function goOnline(user) {
 
 export async function goOffline(email) {
   stopHeartbeat();
-  const existing = await base44.entities.PartnerLocation.filter({ partner_email: email });
+  const existing = await servisaku.entities.PartnerLocation.filter({ partner_email: email });
   if (existing.length > 0) {
-    await base44.entities.PartnerLocation.update(existing[0].id, {
+    await servisaku.entities.PartnerLocation.update(existing[0].id, {
       is_online: false, last_seen: new Date().toISOString(),
     });
   }
@@ -33,9 +33,9 @@ export async function goOffline(email) {
 function startHeartbeat(email) {
   stopHeartbeat();
   heartbeatTimer = setInterval(async () => {
-    const existing = await base44.entities.PartnerLocation.filter({ partner_email: email });
+    const existing = await servisaku.entities.PartnerLocation.filter({ partner_email: email });
     if (existing.length > 0) {
-      await base44.entities.PartnerLocation.update(existing[0].id, {
+      await servisaku.entities.PartnerLocation.update(existing[0].id, {
         last_seen: new Date().toISOString(),
       });
     }
@@ -65,14 +65,14 @@ export function startGPSTracking(email, bookingId, onUpdate) {
       last_seen: new Date().toISOString(),
     };
     if (locationRecordId) {
-      await base44.entities.PartnerLocation.update(locationRecordId, payload);
+      await servisaku.entities.PartnerLocation.update(locationRecordId, payload);
     } else {
-      const existing = await base44.entities.PartnerLocation.filter({ partner_email: email });
+      const existing = await servisaku.entities.PartnerLocation.filter({ partner_email: email });
       if (existing.length > 0) {
         locationRecordId = existing[0].id;
-        await base44.entities.PartnerLocation.update(locationRecordId, payload);
+        await servisaku.entities.PartnerLocation.update(locationRecordId, payload);
       } else {
-        const created = await base44.entities.PartnerLocation.create(payload);
+        const created = await servisaku.entities.PartnerLocation.create(payload);
         locationRecordId = created.id;
       }
     }
@@ -104,7 +104,7 @@ export function calcETA(partnerLat, partnerLng, destLat, destLng, speedKmh = 30)
 
 // ─── System Message ────────────────────────────────────────────────────────
 export async function sendSystemMessage(bookingId, text) {
-  await base44.entities.ChatMessage.create({
+  await servisaku.entities.ChatMessage.create({
     booking_id: bookingId,
     sender_email: 'system@fixmate.my',
     sender_name: 'FixMate',
@@ -116,7 +116,7 @@ export async function sendSystemMessage(bookingId, text) {
 
 // ─── Booking Status Change + Notification ─────────────────────────────────
 export async function changeBookingStatus(bookingId, newStatus, extra = {}) {
-  await base44.entities.Booking.update(bookingId, { status: newStatus, ...extra });
+  await servisaku.entities.Booking.update(bookingId, { status: newStatus, ...extra });
 }
 
 // ─── KL Bounding Box (for demo GPS simulation) ─────────────────────────────

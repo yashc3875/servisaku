@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, Camera, Info, Phone } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import { useChat } from '@/hooks/useChat';
 import { useRealtimeBooking } from '@/hooks/useRealtimeBooking';
 import moment from 'moment';
@@ -66,7 +66,7 @@ export default function ChatScreen() {
   const fileRef = useRef();
 
   useEffect(() => {
-    base44.auth.me().then(setUser);
+    servisaku.auth.me().then(setUser);
   }, []);
 
   useEffect(() => {

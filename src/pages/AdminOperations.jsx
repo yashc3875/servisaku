@@ -5,7 +5,7 @@ import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useActiveBookings, useOnlinePartners } from '@/hooks/useRealtimeBooking';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import StatusBadge from '../components/StatusBadge';
 import { formatRM } from '@/lib/paymentEngine';
 import { toast } from 'sonner';
@@ -46,7 +46,7 @@ export default function AdminOperations() {
   const handleForceAssign = async (bookingId) => {
     const idlePartner = onlinePartners.find(p => !p.is_on_job);
     if (!idlePartner) { toast.error('No idle partners available'); return; }
-    await base44.entities.Booking.update(bookingId, {
+    await servisaku.entities.Booking.update(bookingId, {
       partner_email: idlePartner.partner_email,
       partner_name: idlePartner.partner_name,
       status: 'assigned',
@@ -55,7 +55,7 @@ export default function AdminOperations() {
   };
 
   const handleEscalate = async (bookingId, consumerEmail) => {
-    await base44.entities.Notification.create({
+    await servisaku.entities.Notification.create({
       user_email: consumerEmail,
       title: 'Dispute Escalated',
       body: 'Your dispute has been escalated to senior support. We will contact you within 2 hours.',

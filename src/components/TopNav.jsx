@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Hexagon, MapPin, ShoppingCart, ChevronDown, User, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/AuthContext';
@@ -85,16 +85,16 @@ export default function TopNav() {
                   </div>
                   {user.full_name?.split(' ')[0]}
                 </Link>
-                <button onClick={() => base44.auth.logout()} className="text-ink-secondary hover:text-danger transition-colors">
+                <button onClick={() => servisaku.auth.logout()} className="text-ink-secondary hover:text-danger transition-colors">
                   <LogOut className="h-4 w-4" />
                 </button>
               </div>
             ) : (
               <>
-                <Button variant="outline" className="border-hairline/20 hover:bg-raised text-sm font-bold rounded-xl px-5 h-10" onClick={() => base44.auth.redirectToLogin()}>
+                <Button variant="outline" className="border-hairline/20 hover:bg-raised text-sm font-bold rounded-xl px-5 h-10" onClick={() => servisaku.auth.redirectToLogin()}>
                   Log In
                 </Button>
-                <Button className="bg-brand text-white hover:bg-brand/90 text-sm font-bold rounded-xl px-5 h-10 shadow-sm" onClick={() => base44.auth.redirectToLogin()}>
+                <Button className="bg-brand text-white hover:bg-brand/90 text-sm font-bold rounded-xl px-5 h-10 shadow-sm" onClick={() => servisaku.auth.redirectToLogin()}>
                   Sign Up
                 </Button>
               </>

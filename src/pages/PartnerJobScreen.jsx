@@ -4,7 +4,7 @@ import {
   Navigation, Phone, MessageSquare, Camera, CheckCircle2,
   AlertTriangle, Clock, MapPin, ArrowLeft, X
 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import { useRealtimeBooking } from '@/hooks/useRealtimeBooking';
 import { startGPSTracking, stopGPSTracking, sendSystemMessage, changeBookingStatus } from '@/lib/realtimeService';
 import { STATUS_META } from '@/lib/bookingEngine';
@@ -33,7 +33,7 @@ export default function PartnerJobScreen() {
   const fileRef = useRef();
 
   useEffect(() => {
-    base44.auth.me().then(setUser);
+    servisaku.auth.me().then(setUser);
     return () => stopGPSTracking();
   }, []);
 
@@ -74,7 +74,7 @@ export default function PartnerJobScreen() {
   const handlePhotoUpload = async (files) => {
     setUploading(true);
     for (const file of Array.from(files)) {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const { file_url } = await servisaku.integrations.Core.UploadFile({ file });
       setCompletionPhotos(p => [...p, file_url]);
     }
     setUploading(false);
@@ -83,7 +83,7 @@ export default function PartnerJobScreen() {
 
   const handleDelay = async () => {
     await sendSystemMessage(booking.id, `Partner reported a ${delayMinutes}-minute delay`);
-    await base44.entities.Notification.create({
+    await servisaku.entities.Notification.create({
       user_email: booking.consumer_email,
       title: 'Partner Running Late',
       body: `Your partner will be approximately ${delayMinutes} minutes late. We apologise for the inconvenience.`,
@@ -97,7 +97,7 @@ export default function PartnerJobScreen() {
 
   const handleCannotAccess = async () => {
     await sendSystemMessage(booking.id, 'Partner cannot access the property. Please contact partner.');
-    await base44.entities.Notification.create({
+    await servisaku.entities.Notification.create({
       user_email: booking.consumer_email,
       title: 'Access Issue',
       body: 'Your partner is at the property but cannot gain access. Please respond immediately.',

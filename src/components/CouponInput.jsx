@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import { Tag, CheckCircle2, X, Loader2 } from 'lucide-react';
 
 export default function CouponInput({ serviceType, subtotal, onApply }) {
@@ -12,7 +12,7 @@ export default function CouponInput({ serviceType, subtotal, onApply }) {
     if (!code.trim()) return;
     setLoading(true);
     setError('');
-    const coupons = await base44.entities.Coupon.filter({ code: code.toUpperCase(), is_active: true });
+    const coupons = await servisaku.entities.Coupon.filter({ code: code.toUpperCase(), is_active: true });
     const coupon = coupons[0];
 
     if (!coupon) {

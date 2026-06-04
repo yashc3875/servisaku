@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Send, CheckCircle2 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import { SERVICES } from '@/lib/services';
 import { calcPriceBreakdown, formatRM } from '@/lib/paymentEngine';
 import { toast } from 'sonner';
@@ -17,7 +17,7 @@ export default function BookingInvoice() {
   const [booking, setBooking] = useState(null);
 
   useEffect(() => {
-    base44.entities.Booking.get(bookingId).then(setBooking);
+    servisaku.entities.Booking.get(bookingId).then(setBooking);
   }, [bookingId]);
 
   if (!booking) return (

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check, Upload, User, Wrench, MapPin, ArrowRight, ArrowLeft, ShieldCheck } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import { Button } from '@/components/ui/button';
 import { SERVICES, CITIES } from '@/lib/services';
 import { toast } from 'sonner';
@@ -45,15 +45,15 @@ export default function PartnerOnboarding() {
   const back = () => setStep(s => s - 1);
 
   const handleFileUpload = async (file, field) => {
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    const { file_url } = await servisaku.integrations.Core.UploadFile({ file });
     setForm(f => ({ ...f, [field]: file_url }));
     toast.success('Document uploaded');
   };
 
   const handleSubmit = async () => {
     setSaving(true);
-    const me = await base44.auth.me();
-    await base44.auth.updateMe({
+    const me = await servisaku.auth.me();
+    await servisaku.auth.updateMe({
       partner_bio: form.bio,
       partner_ic_number: form.ic_number,
       partner_bank_name: form.bank_name,
@@ -69,7 +69,7 @@ export default function PartnerOnboarding() {
       max_jobs: 3,
       service_areas: form.areas,
     }));
-    await base44.entities.PartnerAvailability.bulkCreate(availabilityRecords);
+    await servisaku.entities.PartnerAvailability.bulkCreate(availabilityRecords);
     setSaving(false);
     next();
   };

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Settings, Shield, LogOut, ChevronRight, Star, Wrench, Users, Edit3, Bell } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import { motion } from 'framer-motion';
 import { variants, safeMotion } from '@/lib/design/motion';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -9,7 +9,7 @@ import ThemeToggle from '@/components/ThemeToggle';
 export default function Profile() {
   const [user, setUser] = useState(null);
 
-  useEffect(() => { base44.auth.me().then(setUser); }, []);
+  useEffect(() => { servisaku.auth.me().then(setUser); }, []);
 
   if (!user) return (
     <div className="flex justify-center items-center min-h-screen">
@@ -111,7 +111,7 @@ export default function Profile() {
         {/* Sign out */}
         <div className="bg-surface rounded-2xl border border-hairline/10 shadow-e1 overflow-hidden">
           <button
-            onClick={() => base44.auth.logout()}
+            onClick={() => servisaku.auth.logout()}
             className="flex items-center gap-4 px-5 py-4 w-full hover:bg-red-50 active:bg-red-100 transition-colors">
             <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
               <LogOut className="h-4 w-4 text-destructive" />

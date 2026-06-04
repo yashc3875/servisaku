@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import { Clock, DollarSign, MapPin,
   ToggleLeft, ToggleRight, Star, Calendar, ChevronRight,
 } from 'lucide-react';
@@ -18,9 +18,9 @@ export default function PartnerDashboard() {
 
   useEffect(() => {
     const load = async () => {
-      const me = await base44.auth.me();
+      const me = await servisaku.auth.me();
       setUser(me);
-      const myJobs = await base44.entities.Booking.filter({ partner_email: me.email }, '-created_date', 50);
+      const myJobs = await servisaku.entities.Booking.filter({ partner_email: me.email }, '-created_date', 50);
       setJobs(myJobs);
       setLoading(false);
       
@@ -43,7 +43,7 @@ export default function PartnerDashboard() {
   const displayJobs = tab === 'requests' ? pendingJobs : tab === 'today' ? todayJobs : tab === 'upcoming' ? upcomingJobs : completedJobs.slice(0, 10);
 
   const updateStatus = async (id, status) => {
-    await base44.entities.Booking.update(id, { status });
+    await servisaku.entities.Booking.update(id, { status });
     setJobs(jobs.map(j => j.id === id ? { ...j, status } : j));
     toast.success(`Job ${status.replace('_', ' ')}`);
   };

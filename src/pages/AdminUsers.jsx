@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import { Users, Search, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -20,7 +20,7 @@ export default function AdminUsers() {
   const [actionLoading, setActionLoading] = useState(null);
 
   useEffect(() => {
-    base44.entities.User.list('-created_date', 100).then(u => {
+    servisaku.entities.User.list('-created_date', 100).then(u => {
       setUsers(u);
       setLoading(false);
     });
@@ -38,7 +38,7 @@ export default function AdminUsers() {
 
   const handleApprove = async (userId) => {
     setActionLoading(userId);
-    await base44.entities.User.update(userId, { partner_verified: true });
+    await servisaku.entities.User.update(userId, { partner_verified: true });
     setUsers(u => u.map(user => user.id === userId ? { ...user, partner_verified: true } : user));
     toast.success('Partner approved!');
     setActionLoading(null);
@@ -46,14 +46,14 @@ export default function AdminUsers() {
 
   const handleReject = async (userId) => {
     setActionLoading(userId);
-    await base44.entities.User.update(userId, { is_active: false });
+    await servisaku.entities.User.update(userId, { is_active: false });
     setUsers(u => u.map(user => user.id === userId ? { ...user, is_active: false } : user));
     toast.success('Partner application rejected');
     setActionLoading(null);
   };
 
   const handleChangeRole = async (userId, newRole) => {
-    await base44.entities.User.update(userId, { role: newRole });
+    await servisaku.entities.User.update(userId, { role: newRole });
     setUsers(u => u.map(user => user.id === userId ? { ...user, role: newRole } : user));
     toast.success('Role updated');
   };

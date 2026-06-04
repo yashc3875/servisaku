@@ -1,5 +1,5 @@
 // FixMate Quality Engine — scoring, badges, automated triggers
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 
 // ─── Badge Thresholds ──────────────────────────────────────────────────────
 export const BADGE_TIERS = {
@@ -55,14 +55,14 @@ export async function checkAndCreateTicket(review, existingTickets) {
       new Date(t.created_date) > new Date(Date.now() - 30 * 86400000)
     );
     const severity = recent.length >= 3 ? 'critical' : recent.length >= 1 ? 'high' : 'medium';
-    await base44.entities.QualityTicket.create({
+    await servisaku.entities.QualityTicket.create({
       partner_email, partner_name: partner_name || '',
       trigger_type: 'low_rating', booking_id, review_id,
       severity,
       description: `${rating}★ review received. ${recent.length} similar tickets in last 30 days.`,
     });
     // Send warning notification
-    await base44.entities.Notification.create({
+    await servisaku.entities.Notification.create({
       user_email: partner_email,
       title: severity === 'critical' ? '⚠️ Urgent: Quality Review Required' : 'Quality Alert',
       body: `You received a ${rating}-star review. Our quality team will follow up.`,

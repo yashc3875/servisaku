@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, MapPin, Globe, ArrowRight, Check } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import { Button } from '@/components/ui/button';
 import { CITIES } from '@/lib/services';
 import { toast } from 'sonner';
@@ -15,7 +15,7 @@ export default function ProfileSetup() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    base44.auth.me().then(u => {
+    servisaku.auth.me().then(u => {
       setUser(u);
       setName(u.full_name || '');
       if (u.city) setCity(u.city);
@@ -29,7 +29,7 @@ export default function ProfileSetup() {
       return;
     }
     setSaving(true);
-    await base44.auth.updateMe({ city, language });
+    await servisaku.auth.updateMe({ city, language });
     toast.success('Profile saved!');
     navigate('/');
     setSaving(false);

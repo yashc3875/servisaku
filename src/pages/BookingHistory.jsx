@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import BookingCard from '../components/BookingCard';
 import { CalendarDays, Clock, CheckCircle2 } from 'lucide-react';
 
@@ -10,8 +10,8 @@ export default function BookingHistory() {
 
   useEffect(() => {
     const load = async () => {
-      const me = await base44.auth.me();
-      const all = await base44.entities.Booking.filter({ consumer_email: me.email }, '-created_date', 50);
+      const me = await servisaku.auth.me();
+      const all = await servisaku.entities.Booking.filter({ consumer_email: me.email }, '-created_date', 50);
       setBookings(all);
       setLoading(false);
     };

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Shield, Lock, CheckCircle2, XCircle, RefreshCw } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import { PAYMENT_METHODS, calcPriceBreakdown, createEscrowEntry, formatRM } from '@/lib/paymentEngine';
 import { generateIdempotencyKey, markPaymentSubmitted, clearPaymentRecord, auditLog } from '@/lib/security';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,7 @@ export default function PaymentCheckout() {
   const [payState, setPayState] = useState('idle'); // idle | processing | success | failed
 
   useEffect(() => {
-    if (bookingId) base44.entities.Booking.get(bookingId).then(setBooking);
+    if (bookingId) servisaku.entities.Booking.get(bookingId).then(setBooking);
   }, [bookingId]);
 
   if (!booking && bookingId) return (
@@ -55,7 +55,7 @@ export default function PaymentCheckout() {
     const success = Math.random() > 0.05;
 
     if (success) {
-      const payment = await base44.entities.Payment.create({
+      const payment = await servisaku.entities.Payment.create({
         booking_id: booking?.id || 'demo',
         consumer_email: booking?.consumer_email || 'demo@test.com',
         amount: breakdown.total,
@@ -70,7 +70,7 @@ export default function PaymentCheckout() {
       });
 
       if (booking) {
-        await base44.entities.Booking.update(booking.id, {
+        await servisaku.entities.Booking.update(booking.id, {
           payment_status: 'escrowed',
           payment_method: method,
         });

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import { ArrowLeft, TrendingUp, CheckCircle2, Download, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -26,11 +26,11 @@ export default function PartnerEarnings() {
 
   useEffect(() => {
     const load = async () => {
-      const me = await base44.auth.me();
+      const me = await servisaku.auth.me();
       setUser(me);
       const [p, b] = await Promise.all([
-        base44.entities.PayoutRecord.filter({ partner_email: me.email }, '-created_date', 100),
-        base44.entities.Booking.filter({ partner_email: me.email, status: 'completed' }, '-created_date', 100),
+        servisaku.entities.PayoutRecord.filter({ partner_email: me.email }, '-created_date', 100),
+        servisaku.entities.Booking.filter({ partner_email: me.email, status: 'completed' }, '-created_date', 100),
       ]);
       setPayouts(p);
       setBookings(b);

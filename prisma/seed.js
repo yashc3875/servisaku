@@ -30,6 +30,18 @@ async function main() {
     create: { email: 'raj@servisaku.my', passwordHash: partnerPw, fullName: 'Raj Kumar', role: 'partner', partnerVerified: true, partnerRating: 4.7, city: 'Petaling Jaya', bio: 'AC servicing and deep cleaning specialist.' },
   });
 
+  const partner3 = await prisma.user.upsert({
+    where: { email: 'chong@servisaku.my' },
+    update: {},
+    create: { email: 'chong@servisaku.my', passwordHash: partnerPw, fullName: 'David Chong', role: 'partner', partnerVerified: true, partnerRating: 5.0, city: 'Subang Jaya', bio: 'Professional pest control and exterminator.' },
+  });
+
+  const partner4 = await prisma.user.upsert({
+    where: { email: 'siti@servisaku.my' },
+    update: {},
+    create: { email: 'siti@servisaku.my', passwordHash: partnerPw, fullName: 'Siti Nurhaliza', role: 'partner', partnerVerified: true, partnerRating: 4.8, city: 'Kuala Lumpur', bio: 'Plumbing and home repair expert.' },
+  });
+
   const consumer = await prisma.user.upsert({
     where: { email: 'user@servisaku.my' },
     update: {},

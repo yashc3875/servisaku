@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import { appParams } from '@/lib/app-params';
 const AuthContext = createContext();
 
@@ -24,7 +24,9 @@ export const AuthProvider = ({ children }) => {
       // Mock public settings
       setAppPublicSettings({ public_settings: { auth_type: 'email' } });
       
-      if (appParams.token || localStorage.getItem('mock_active_user_id')) {
+      // Check for real JWT token OR legacy mock session
+      const hasToken = !!localStorage.getItem('auth_token') || !!localStorage.getItem('mock_active_user_id');
+      if (appParams.token || hasToken) {
         await checkUserAuth();
       } else {
         setIsLoadingAuth(false);
@@ -47,7 +49,7 @@ export const AuthProvider = ({ children }) => {
     try {
       // Now check if the user is authenticated
       setIsLoadingAuth(true);
-      const currentUser = await base44.auth.me();
+      const currentUser = await servisaku.auth.me();
       setUser(currentUser);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
@@ -71,19 +73,17 @@ export const AuthProvider = ({ children }) => {
   const logout = (shouldRedirect = true) => {
     setUser(null);
     setIsAuthenticated(false);
-    
+    // Clear both real token and legacy mock session
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('mock_active_user_id');
     if (shouldRedirect) {
-      // Use the SDK's logout method which handles token cleanup and redirect
-      base44.auth.logout(window.location.href);
-    } else {
-      // Just remove the token without redirect
-      base44.auth.logout();
+      window.location.href = '/';
     }
   };
 
   const navigateToLogin = () => {
     // Use the SDK's redirectToLogin method
-    base44.auth.redirectToLogin(window.location.href);
+    servisaku.auth.redirectToLogin(window.location.href);
   };
 
   return (

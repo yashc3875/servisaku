@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import { auditLog } from '@/lib/security';
 
 export default function ProtectedRoute({ children, roles }) {
   const [user, setUser] = useState(undefined);
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => setUser(null));
+    servisaku.auth.me().then(setUser).catch(() => setUser(null));
   }, []);
 
   if (user === undefined) {

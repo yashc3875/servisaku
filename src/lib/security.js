@@ -270,7 +270,7 @@ export async function flushAuditLog(base44, userEmail) {
   try {
     const q = JSON.parse(sessionStorage.getItem(AUDIT_QUEUE_KEY) || '[]');
     if (!q.length) return;
-    await base44.entities.AuditLog.bulkCreate(
+    await servisaku.entities.AuditLog.bulkCreate(
       q.map(e => ({ user_email: userEmail, ...e }))
     );
     sessionStorage.removeItem(AUDIT_QUEUE_KEY);
@@ -280,7 +280,7 @@ export async function flushAuditLog(base44, userEmail) {
 // ─── 8. CONTENT SECURITY HELPERS ─────────────────────────────────────────────
 
 /** Safe redirect — only allow relative paths or trusted domains. */
-const TRUSTED_DOMAINS = ['servisaku.com', 'base44.app', 'base44.com'];
+const TRUSTED_DOMAINS = ['servisaku.com', 'servisaku.app', 'servisaku.com'];
 
 export function safeRedirect(url) {
   if (!url) return '/';

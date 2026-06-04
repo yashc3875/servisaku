@@ -1,16 +1,16 @@
 // ServisAku Analytics Engine — KPI computation & aggregation
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import moment from 'moment';
 
 // ─── Data loader — fetches all entities needed for analytics ─────────────
 export async function loadAnalyticsData() {
   const [bookings, users, payments, reviews, payouts, refunds] = await Promise.all([
-    base44.entities.Booking.list('-created_date', 500),
-    base44.entities.User.list('-created_date', 500),
-    base44.entities.Payment.list('-created_date', 500),
-    base44.entities.Review.list('-created_date', 500),
-    base44.entities.PayoutRecord.list('-created_date', 200),
-    base44.entities.RefundRequest.list('-created_date', 200),
+    servisaku.entities.Booking.list('-created_date', 500),
+    servisaku.entities.User.list('-created_date', 500),
+    servisaku.entities.Payment.list('-created_date', 500),
+    servisaku.entities.Review.list('-created_date', 500),
+    servisaku.entities.PayoutRecord.list('-created_date', 200),
+    servisaku.entities.RefundRequest.list('-created_date', 200),
   ]);
   return { bookings, users, payments, reviews, payouts, refunds };
 }

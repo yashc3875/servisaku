@@ -1,5 +1,5 @@
 // ServisAku Notification Engine — event-driven, multi-channel
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import { getTemplate } from './notificationTemplates';
 import { buildEmailHtml } from './emailTemplates';
 
@@ -28,7 +28,7 @@ export async function dispatch(eventType, recipientEmail, data = {}, options = {
 
   // ── In-App ──
   if (channels.includes('in_app')) {
-    await base44.entities.Notification.create({
+    await servisaku.entities.Notification.create({
       user_email: recipientEmail, title, body,
       type: _notifType(eventType), channel: 'in_app',
       reference_id: referenceId, reference_type: referenceType,
@@ -42,7 +42,7 @@ export async function dispatch(eventType, recipientEmail, data = {}, options = {
     const subject = typeof tmpl.email_subject === 'function' ? tmpl.email_subject(data) : tmpl.email_subject;
     const html = buildEmailHtml(eventType, title, body, data, lang);
     try {
-      await base44.integrations.Core.SendEmail({ to: recipientEmail, subject, body: html });
+      await servisaku.integrations.Core.SendEmail({ to: recipientEmail, subject, body: html });
       await _log({ ...logBase, channel: 'email', status: 'sent', subject, body_preview: body.slice(0, 100) });
     } catch (e) {
       await _log({ ...logBase, channel: 'email', status: 'failed', subject, failure_reason: String(e) });
@@ -123,20 +123,20 @@ export async function sendBroadcast(campaign, recipients) {
     const lang = r.language || 'en';
     const body = lang === 'bm' && campaign.body_bm ? campaign.body_bm : campaign.body;
     if (campaign.channels?.includes('in_app')) {
-      await base44.entities.Notification.create({
+      await servisaku.entities.Notification.create({
         user_email: r.email, title: campaign.subject, body,
         type: 'promo', channel: 'in_app', is_read: false,
         sent_at: new Date().toISOString(),
       });
     }
     if (campaign.channels?.includes('email')) {
-      await base44.integrations.Core.SendEmail({ to: r.email, subject: campaign.subject, body });
+      await servisaku.integrations.Core.SendEmail({ to: r.email, subject: campaign.subject, body });
     }
     sent++;
     // Rate-limit: ~10/s
     if (sent % 10 === 0) await new Promise(r => setTimeout(r, 1000));
   }
-  await base44.entities.Campaign.update(campaign.id, {
+  await servisaku.entities.Campaign.update(campaign.id, {
     status: 'sent', sent_at: new Date().toISOString(), sent_count: sent,
   });
   return sent;
@@ -151,5 +151,5 @@ function _notifType(eventType) {
 }
 
 async function _log(data) {
-  await base44.entities.NotificationLog.create({ ...data, sent_at: new Date().toISOString() });
+  await servisaku.entities.NotificationLog.create({ ...data, sent_at: new Date().toISOString() });
 }

@@ -4,7 +4,7 @@ import {
   ArrowLeft, CalendarDays, Clock, MapPin, MessageSquare,
   Star, Phone, Download, RotateCcw, AlertTriangle, User
 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import StatusBadge from '../components/StatusBadge';
 import BookingTimeline from '../components/BookingTimeline';
 import { SERVICES } from '@/lib/services';
@@ -23,9 +23,9 @@ export default function BookingDetail() {
   const [cancelReason, setCancelReason] = useState('');
 
   useEffect(() => {
-    base44.entities.Booking.get(bookingId).then(setBooking);
+    servisaku.entities.Booking.get(bookingId).then(setBooking);
     // Subscribe to real-time updates
-    const unsub = base44.entities.Booking.subscribe(event => {
+    const unsub = servisaku.entities.Booking.subscribe(event => {
       if (event.id === bookingId) setBooking(event.data);
     });
     return unsub;
@@ -45,7 +45,7 @@ export default function BookingDetail() {
 
   const handleCancel = async () => {
     if (!cancelReason) return toast.error('Please provide a reason');
-    await base44.entities.Booking.update(booking.id, {
+    await servisaku.entities.Booking.update(booking.id, {
       status: 'cancelled',
       cancellation_reason: cancelReason,
       cancelled_by: 'consumer',
@@ -57,9 +57,9 @@ export default function BookingDetail() {
 
   const _handleReview = async () => {
     if (!rating) return toast.error('Please select a rating');
-    await base44.entities.Booking.update(booking.id, { rating, review: reviewText });
+    await servisaku.entities.Booking.update(booking.id, { rating, review: reviewText });
     if (booking.partner_email) {
-      await base44.entities.Review.create({
+      await servisaku.entities.Review.create({
         booking_id: booking.id,
         partner_email: booking.partner_email,
         consumer_email: booking.consumer_email,

@@ -4,7 +4,7 @@ import {
   ArrowLeft, AlertTriangle, Star, Shield, CheckCircle2, XCircle,
   Eye, MessageSquare, Ban, RefreshCw, TrendingDown
 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import {
   calcWeightedRating, getBadge, analyzeTagFrequency,
   detectSuspiciousReviews, getRatingDistribution
@@ -43,9 +43,9 @@ export default function AdminQualityCenter() {
 
   useEffect(() => {
     Promise.all([
-      base44.entities.QualityTicket.list('-created_date', 100),
-      base44.entities.Review.list('-created_date', 200),
-      base44.entities.User.filter({ role: 'partner' }),
+      servisaku.entities.QualityTicket.list('-created_date', 100),
+      servisaku.entities.Review.list('-created_date', 200),
+      servisaku.entities.User.filter({ role: 'partner' }),
     ]).then(([t, r, p]) => { setTickets(t); setReviews(r); setPartners(p); setLoading(false); });
   }, []);
 
@@ -67,7 +67,7 @@ export default function AdminQualityCenter() {
   const atRiskPartners = partnerScores.filter(p => p.avg > 0 && p.avg < 3.5);
 
   const handleTicketAction = async (ticket, status, action) => {
-    await base44.entities.QualityTicket.update(ticket.id, {
+    await servisaku.entities.QualityTicket.update(ticket.id, {
       status,
       action_taken: action,
       admin_notes: adminNote || ticket.admin_notes,
@@ -75,7 +75,7 @@ export default function AdminQualityCenter() {
       resolved_at: status === 'resolved' || status === 'dismissed' ? new Date().toISOString() : undefined,
     });
     if (status === 'warning_sent') {
-      await base44.entities.Notification.create({
+      await servisaku.entities.Notification.create({
         user_email: ticket.partner_email,
         title: '⚠️ Quality Warning',
         body: `You have received a quality warning from FixMate. Please review our standards.`,
@@ -83,7 +83,7 @@ export default function AdminQualityCenter() {
       });
     }
     if (status === 'suspended') {
-      await base44.entities.Notification.create({
+      await servisaku.entities.Notification.create({
         user_email: ticket.partner_email,
         title: '🚫 Account Temporarily Suspended',
         body: 'Your account has been temporarily suspended pending quality review. Contact support.',
@@ -97,7 +97,7 @@ export default function AdminQualityCenter() {
   };
 
   const handleModerate = async (review, action) => {
-    await base44.entities.Review.update(review.id, {
+    await servisaku.entities.Review.update(review.id, {
       moderation_status: action,
       is_visible: action === 'approved',
     });

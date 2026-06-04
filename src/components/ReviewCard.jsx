@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Star, ThumbsUp, Flag, Edit2 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import { cn } from '@/lib/utils';
 import moment from 'moment';
 
@@ -28,7 +28,7 @@ export default function ReviewCard({ review, _showPartner = false, currentUserEm
     if (voted || isOwn) return;
     setVoted(true);
     setHelpful(h => h + 1);
-    await base44.entities.Review.update(review.id, { helpful_count: helpful + 1 });
+    await servisaku.entities.Review.update(review.id, { helpful_count: helpful + 1 });
   };
 
   if (!review.is_visible) return null;

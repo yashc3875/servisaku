@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Star, Camera, X, ChevronRight, CheckCircle2, ArrowLeft } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import { CONSUMER_REVIEW_TAGS, checkAndCreateTicket } from '@/lib/qualityEngine';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -44,8 +44,8 @@ export default function ReviewFlow() {
 
   useEffect(() => {
     Promise.all([
-      base44.entities.Booking.get(bookingId),
-      base44.auth.me(),
+      servisaku.entities.Booking.get(bookingId),
+      servisaku.auth.me(),
     ]).then(([b, u]) => { setBooking(b); setUser(u); });
   }, [bookingId]);
 
@@ -56,7 +56,7 @@ export default function ReviewFlow() {
   const handlePhotoUpload = async (e) => {
     setUploading(true);
     for (const file of Array.from(e.target.files)) {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const { file_url } = await servisaku.integrations.Core.UploadFile({ file });
       setPhotos(p => [...p, file_url]);
     }
     setUploading(false);
@@ -84,13 +84,13 @@ export default function ReviewFlow() {
       moderation_status: overallRating >= 3 ? 'approved' : 'pending',
       helpful_count: 0,
     };
-    const review = await base44.entities.Review.create(reviewPayload);
-    await base44.entities.Booking.update(bookingId, {
+    const review = await servisaku.entities.Review.create(reviewPayload);
+    await servisaku.entities.Booking.update(bookingId, {
       rating: overallRating, review: comment,
     });
     // Auto quality ticket for low ratings
     if (overallRating < 3) {
-      const tickets = await base44.entities.QualityTicket.filter({ partner_email: booking.partner_email });
+      const tickets = await servisaku.entities.QualityTicket.filter({ partner_email: booking.partner_email });
       await checkAndCreateTicket(
         { ...reviewPayload, partner_name: booking.partner_name, id: review.id },
         tickets

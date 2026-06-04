@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import {
   Users, DollarSign, TrendingUp, AlertTriangle, Clock,
   ArrowUpRight, BarChart3, Shield, ChevronRight, Activity,
@@ -45,9 +45,9 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     Promise.all([
-      base44.entities.Booking.list('-created_date', 100),
-      base44.entities.User.list('-created_date', 100),
-      base44.entities.RefundRequest.list('-created_date', 50),
+      servisaku.entities.Booking.list('-created_date', 100),
+      servisaku.entities.User.list('-created_date', 100),
+      servisaku.entities.RefundRequest.list('-created_date', 50),
     ]).then(([b, u, r]) => { setBookings(b); setUsers(u); setRefunds(r); setLoading(false); });
   }, []);
 

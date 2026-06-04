@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 
 export function useChat(bookingId) {
   const [messages, setMessages] = useState([]);
@@ -10,10 +10,10 @@ export function useChat(bookingId) {
 
   useEffect(() => {
     if (!bookingId) return;
-    base44.entities.ChatMessage.filter({ booking_id: bookingId }, 'created_date', 100)
+    servisaku.entities.ChatMessage.filter({ booking_id: bookingId }, 'created_date', 100)
       .then(msgs => { setMessages(msgs); setLoading(false); });
 
-    const unsub = base44.entities.ChatMessage.subscribe(event => {
+    const unsub = servisaku.entities.ChatMessage.subscribe(event => {
       if (event.data?.booking_id !== bookingId) return;
       if (event.type === 'create') {
         setMessages(prev => {
@@ -22,7 +22,7 @@ export function useChat(bookingId) {
         });
         // Mark as read if not own message
         if (!event.data.is_read) {
-          base44.entities.ChatMessage.update(event.id, {
+          servisaku.entities.ChatMessage.update(event.id, {
             is_read: true, read_at: new Date().toISOString(),
           }).catch(() => {});
         }
@@ -44,7 +44,7 @@ export function useChat(bookingId) {
     };
     setMessages(prev => [...prev, optimistic]);
 
-    const saved = await base44.entities.ChatMessage.create({
+    const saved = await servisaku.entities.ChatMessage.create({
       booking_id: bookingId, sender_email: senderEmail,
       sender_name: senderName, sender_role: senderRole,
       message: text, message_type: fileUrl ? 'image' : 'text',
@@ -57,7 +57,7 @@ export function useChat(bookingId) {
 
   const sendPhoto = async (senderEmail, senderName, senderRole, file) => {
     setSending(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    const { file_url } = await servisaku.integrations.Core.UploadFile({ file });
     await sendMessage(senderEmail, senderName, senderRole, '📷 Photo', file_url);
     setSending(false);
   };

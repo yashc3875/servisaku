@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import { Search, RefreshCw, AlertTriangle } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';
 import { STATUS_TRANSITIONS, formatBookingRef } from '@/lib/bookingEngine';
@@ -20,7 +20,7 @@ export default function AdminBookings() {
   useEffect(() => {
     load();
     // Subscribe to real-time booking changes
-    const unsub = base44.entities.Booking.subscribe(event => {
+    const unsub = servisaku.entities.Booking.subscribe(event => {
       if (event.type === 'create') setBookings(prev => [event.data, ...prev]);
       else if (event.type === 'update') setBookings(prev => prev.map(b => b.id === event.id ? event.data : b));
       else if (event.type === 'delete') setBookings(prev => prev.filter(b => b.id !== event.id));
@@ -31,8 +31,8 @@ export default function AdminBookings() {
   const load = async () => {
     setLoading(true);
     const [b, u] = await Promise.all([
-      base44.entities.Booking.list('-created_date', 200),
-      base44.entities.User.filter({ role: 'partner' }),
+      servisaku.entities.Booking.list('-created_date', 200),
+      servisaku.entities.User.filter({ role: 'partner' }),
     ]);
     setBookings(b);
     setUsers(u);
@@ -48,13 +48,13 @@ export default function AdminBookings() {
   });
 
   const handleStatusChange = async (bookingId, newStatus) => {
-    await base44.entities.Booking.update(bookingId, { status: newStatus });
+    await servisaku.entities.Booking.update(bookingId, { status: newStatus });
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: newStatus } : b));
     toast.success(`Booking status → ${newStatus}`);
   };
 
   const handleReassign = async (bookingId, partnerEmail, partnerName) => {
-    await base44.entities.Booking.update(bookingId, {
+    await servisaku.entities.Booking.update(bookingId, {
       partner_email: partnerEmail,
       partner_name: partnerName,
       status: 'assigned',

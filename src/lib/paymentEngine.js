@@ -1,5 +1,5 @@
 // FixMate Payment Engine
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 
 export const COMMISSION_RATES = {
   default:       0.20,
@@ -62,7 +62,7 @@ export async function createEscrowEntry(booking, paymentId) {
   const payout = calcPartnerPayout(booking.price || 0);
   const tax = parseFloat((booking.price * TAX_RATE).toFixed(2));
   const releaseAt = new Date(Date.now() + 48 * 3600000).toISOString();
-  return base44.entities.EscrowLedger.create({
+  return servisaku.entities.EscrowLedger.create({
     booking_id: booking.id,
     payment_id: paymentId,
     consumer_email: booking.consumer_email,
@@ -79,7 +79,7 @@ export async function createEscrowEntry(booking, paymentId) {
 
 // Release escrow to partner
 export async function releaseEscrow(escrowId, releasedBy = 'consumer') {
-  await base44.entities.EscrowLedger.update(escrowId, {
+  await servisaku.entities.EscrowLedger.update(escrowId, {
     status: 'released',
     released_at: new Date().toISOString(),
     released_by: releasedBy,
@@ -88,7 +88,7 @@ export async function releaseEscrow(escrowId, releasedBy = 'consumer') {
 
 // Freeze escrow for dispute
 export async function freezeEscrow(escrowId, reason) {
-  await base44.entities.EscrowLedger.update(escrowId, {
+  await servisaku.entities.EscrowLedger.update(escrowId, {
     status: 'frozen',
     frozen_at: new Date().toISOString(),
     freeze_reason: reason,
@@ -100,7 +100,7 @@ export async function schedulePartnerPayout(escrow, booking) {
   const payout = calcPartnerPayout(booking.price);
   const period = new Date().toISOString().slice(0, 7);
   const scheduledDate = new Date(Date.now() + 2 * 24 * 3600000).toISOString().split('T')[0];
-  return base44.entities.PayoutRecord.create({
+  return servisaku.entities.PayoutRecord.create({
     partner_email: booking.partner_email,
     partner_name: booking.partner_name,
     booking_id: booking.id,

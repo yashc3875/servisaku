@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CalendarDays, Clock, MapPin, FileText, CheckCircle2, ChevronRight, User, Shield } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import { SERVICES, CITIES, TIME_SLOTS } from '@/lib/services';
 import PartnerCard from '../components/PartnerCard';
 import { Button } from '@/components/ui/button';
@@ -34,11 +34,11 @@ export default function BookingPage() {
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    base44.auth.me().then(me => {
+    servisaku.auth.me().then(me => {
       setUser(me);
       if (me.city) setCity(me.city);
     });
-    base44.entities.User.filter({ role: 'partner', partner_verified: true }).then(p => {
+    servisaku.entities.User.filter({ role: 'partner', partner_verified: true }).then(p => {
       const filtered = p.filter(u => u.partner_services?.includes(service?.name));
       setPartners(filtered.length > 0 ? filtered : p.slice(0, 3));
     });
@@ -58,7 +58,7 @@ export default function BookingPage() {
 
   const handleSubmit = async () => {
     setSubmitting(true);
-    await base44.entities.Booking.create({
+    await servisaku.entities.Booking.create({
       service_type: service.name,
       consumer_email: user.email,
       consumer_name: user.full_name,

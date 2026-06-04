@@ -1,4 +1,4 @@
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 
 // OTP simulation (in production: Vonage/Twilio SMS to +60 numbers)
 const OTP_STORE = new Map(); // In production: Redis
@@ -46,7 +46,7 @@ export function verifyOTP(phone, input) {
 }
 
 export async function getMe() {
-  return base44.auth.me();
+  return servisaku.auth.me();
 }
 
 export function hasRole(user, ...roles) {

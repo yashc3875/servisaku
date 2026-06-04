@@ -1,5 +1,5 @@
 // ServisAku Automation Workflows — reminder engine, escalation logic
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import {
   notifyReminder24h, notifyReviewReminder, dispatch,
 } from './notificationEngine';
@@ -22,7 +22,7 @@ export async function runReminderWorkflow() {
   const today = moment().format('YYYY-MM-DD');
   const now = moment();
 
-  const bookings = await base44.entities.Booking.filter({ status: 'assigned' });
+  const bookings = await servisaku.entities.Booking.filter({ status: 'assigned' });
   let sent = 0;
 
   for (const b of bookings) {
@@ -58,7 +58,7 @@ export async function runReminderWorkflow() {
 // ─── Review Reminders (1h after completion, if no review) ────────────────
 export async function runReviewReminderWorkflow() {
   const cutoff = moment().subtract(1, 'hour').toISOString();
-  const bookings = await base44.entities.Booking.filter({ status: 'completed' });
+  const bookings = await servisaku.entities.Booking.filter({ status: 'completed' });
   let sent = 0;
 
   for (const b of bookings) {
@@ -81,7 +81,7 @@ export async function runReviewReminderWorkflow() {
 // ─── Late Partner Escalation ──────────────────────────────────────────────
 // If partner is 'assigned' and booking time is past by >30 min
 export async function runLateEscalationWorkflow() {
-  const bookings = await base44.entities.Booking.filter({ status: 'assigned' });
+  const bookings = await servisaku.entities.Booking.filter({ status: 'assigned' });
   let escalated = 0;
 
   for (const b of bookings) {
@@ -96,9 +96,9 @@ export async function runLateEscalationWorkflow() {
           eta: 'unknown — we are checking',
         }, { channels: ['in_app'], referenceId: b.id });
         // Create ops notification for admin
-        const admins = await base44.entities.User.filter({ role: 'admin' });
+        const admins = await servisaku.entities.User.filter({ role: 'admin' });
         for (const admin of admins.slice(0, 3)) {
-          await base44.entities.Notification.create({
+          await servisaku.entities.Notification.create({
             user_email: admin.email,
             title: '🚨 Late Partner Alert',
             body: `Booking ${b.id?.slice(-8)} is ${minutesLate}min late. Partner: ${b.partner_name}`,
@@ -116,16 +116,16 @@ export async function runLateEscalationWorkflow() {
 // ─── Inactive Partner Reminder (no jobs in 14 days) ──────────────────────
 export async function runInactivePartnerWorkflow() {
   const cutoff = moment().subtract(14, 'days').format('YYYY-MM-DD');
-  const partners = await base44.entities.User.filter({ role: 'partner' });
+  const partners = await servisaku.entities.User.filter({ role: 'partner' });
   let sent = 0;
 
   for (const p of partners) {
-    const recent = await base44.entities.Booking.filter({ partner_email: p.email });
+    const recent = await servisaku.entities.Booking.filter({ partner_email: p.email });
     const hasRecent = recent.some(b => b.date >= cutoff);
     if (!hasRecent && recent.length > 0) {
       const alreadySent = await _reminderSent(`partner:${p.email}`, 'inactive_partner');
       if (!alreadySent) {
-        await base44.entities.Notification.create({
+        await servisaku.entities.Notification.create({
           user_email: p.email,
           title: '👋 We miss you!',
           body: 'You haven\'t had any jobs recently. Make sure you\'re set to Online to receive new bookings.',
@@ -141,12 +141,12 @@ export async function runInactivePartnerWorkflow() {
 
 // ─── Internal helpers (use NotificationLog to track what was sent) ────────
 async function _reminderSent(refId, eventType) {
-  const logs = await base44.entities.NotificationLog.filter({ reference_id: refId, event_type: eventType });
+  const logs = await servisaku.entities.NotificationLog.filter({ reference_id: refId, event_type: eventType });
   return logs.length > 0;
 }
 
 async function _markReminderSent(refId, eventType) {
-  await base44.entities.NotificationLog.create({
+  await servisaku.entities.NotificationLog.create({
     user_email: 'system', event_type: eventType,
     channel: 'in_app', status: 'sent',
     reference_id: refId, reference_type: 'automation',

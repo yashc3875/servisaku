@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import moment from 'moment';
 import { toast } from 'sonner';
 
@@ -14,10 +14,10 @@ export default function PartnerCalendar() {
 
   useEffect(() => {
     const load = async () => {
-      const me = await base44.auth.me();
+      const me = await servisaku.auth.me();
       setUser(me);
       // Fetch all jobs for this partner (not cancelled/rejected)
-      const allJobs = await base44.entities.Booking.filter({ partner_email: me.email }, '-date', 200);
+      const allJobs = await servisaku.entities.Booking.filter({ partner_email: me.email }, '-date', 200);
       setJobs(allJobs.filter(j => j.status !== 'cancelled' && j.status !== 'rejected'));
       setLoading(false);
     };

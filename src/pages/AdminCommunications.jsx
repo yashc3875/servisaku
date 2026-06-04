@@ -5,7 +5,7 @@ import {
   Plus, CheckCircle2, RefreshCw,
   Zap, Bell, Mail, MessageSquare, Smartphone
 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { servisaku } from '@/api/servisakuClient';
 import { sendBroadcast } from '@/lib/notificationEngine';
 import { runAllWorkflows } from '@/lib/automationWorkflows';
 import { Button } from '@/components/ui/button';
@@ -108,15 +108,15 @@ export default function AdminCommunications() {
 
   useEffect(() => {
     Promise.all([
-      base44.entities.Campaign.list('-created_date', 50),
-      base44.entities.NotificationLog.list('-created_date', 100),
-      base44.entities.User.list(),
+      servisaku.entities.Campaign.list('-created_date', 50),
+      servisaku.entities.NotificationLog.list('-created_date', 100),
+      servisaku.entities.User.list(),
     ]).then(([c, l, u]) => { setCampaigns(c); setLogs(l); setUsers(u); setLoading(false); });
   }, []);
 
   const handleSaveCampaign = async (form) => {
     if (!form.name || !form.subject || !form.body) { toast.error('Fill in name, subject and body'); return; }
-    const created = await base44.entities.Campaign.create({ ...form, status: 'draft' });
+    const created = await servisaku.entities.Campaign.create({ ...form, status: 'draft' });
     setCampaigns(prev => [created, ...prev]);
     setShowForm(false);
     toast.success('Campaign saved');
@@ -135,7 +135,7 @@ export default function AdminCommunications() {
     const recipients = getRecipients(campaign.target_audience);
     if (recipients.length === 0) { toast.error('No recipients for this audience'); return; }
     setSending(campaign.id);
-    await base44.entities.Campaign.update(campaign.id, { status: 'sending', total_recipients: recipients.length });
+    await servisaku.entities.Campaign.update(campaign.id, { status: 'sending', total_recipients: recipients.length });
     const sent = await sendBroadcast(campaign, recipients);
     setCampaigns(prev => prev.map(c => c.id === campaign.id ? { ...c, status: 'sent', sent_count: sent } : c));
     setSending(null);
