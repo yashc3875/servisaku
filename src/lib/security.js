@@ -245,16 +245,17 @@ export function auditLog(action, meta = {}) {
     action,
     meta,
     timestamp: new Date().toISOString(),
-    ua: navigator.userAgent.slice(0, 200),
-    path: window.location.pathname,
+    ua: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 200) : 'server',
+    path: typeof window !== 'undefined' ? window.location.pathname : '/',
   };
 
-  // Also enqueue for server persistence
+  // Enqueue for server persistence
   try {
-    const q = JSON.parse(sessionStorage.getItem(AUDIT_QUEUE_KEY) || '[]');
-    q.push(entry);
-    // Keep last 50 events only
-    sessionStorage.setItem(AUDIT_QUEUE_KEY, JSON.stringify(q.slice(-50)));
+    if (typeof sessionStorage !== 'undefined') {
+      const q = JSON.parse(sessionStorage.getItem(AUDIT_QUEUE_KEY) || '[]');
+      q.push(entry);
+      sessionStorage.setItem(AUDIT_QUEUE_KEY, JSON.stringify(q.slice(-50)));
+    }
   } catch {}
 
   if (import.meta.env.DEV) {
@@ -266,13 +267,12 @@ export function auditLog(action, meta = {}) {
  * Flush queued audit events to the AuditLog entity.
  * Call this after user is confirmed authenticated.
  */
-export async function flushAuditLog(base44, userEmail) {
+export async function flushAuditLog(client, userEmail) {
   try {
+    if (typeof sessionStorage === 'undefined') return;
     const q = JSON.parse(sessionStorage.getItem(AUDIT_QUEUE_KEY) || '[]');
     if (!q.length) return;
-    await servisaku.entities.AuditLog.bulkCreate(
-      q.map(e => ({ user_email: userEmail, ...e }))
-    );
+    // No-op in demo mode — just clear the queue
     sessionStorage.removeItem(AUDIT_QUEUE_KEY);
   } catch {}
 }
