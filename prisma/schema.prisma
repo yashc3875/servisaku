@@ -1,0 +1,157 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  passwordHash     String?
+  fullName         String
+  role             String    @default("consumer") // consumer | partner | admin | super_admin
+  phone            String?
+  city             String?
+  bio              String?
+  avatarUrl        String?
+  partnerVerified  Boolean   @default(false)
+  partnerRating    Float?
+  partnerCategory  String?
+  bankAccount      String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  bookingsAsConsumer Booking[] @relation("ConsumerBookings")
+  bookingsAsPartner  Booking[] @relation("PartnerBookings")
+  reviews            Review[]
+  notifications      Notification[]
+}
+
+model Booking {
+  id              String    @id @default(cuid())
+  serviceType     String
+  serviceId       String?
+  status          String    @default("pending") // pending | confirmed | in_progress | completed | cancelled | disputed
+  price           Float
+  date            DateTime
+  timeSlot        String?
+  address         String?
+  city            String?
+  notes           String?
+  couponCode      String?
+  discountAmount  Float     @default(0)
+  consumerId      String
+  partnerId       String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  consumer     User          @relation("ConsumerBookings", fields: [consumerId], references: [id])
+  partner      User?         @relation("PartnerBookings", fields: [partnerId], references: [id])
+  escrow       EscrowLedger?
+  review       Review?
+  refundRequests RefundRequest[]
+  chatMessages ChatMessage[]
+}
+
+model Coupon {
+  id                String    @id @default(cuid())
+  code              String    @unique
+  discountType      String    // percentage | fixed
+  discountValue     Float
+  maxDiscountCap    Float?
+  minOrderAmount    Float?
+  applicableServices String?  // comma-separated service ids, null = all
+  isActive          Boolean   @default(true)
+  validUntil        DateTime?
+  usageCount        Int       @default(0)
+  maxUsage          Int?
+  createdAt         DateTime  @default(now())
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  bookingId   String   @unique
+  userId      String
+  rating      Float
+  comment     String?
+  photos      String?  // JSON array of URLs
+  createdAt   DateTime @default(now())
+
+  booking  Booking @relation(fields: [bookingId], references: [id])
+  user     User    @relation(fields: [userId], references: [id])
+}
+
+model EscrowLedger {
+  id              String   @id @default(cuid())
+  bookingId       String   @unique
+  grossAmount     Float
+  platformFee     Float
+  partnerPayout   Float
+  status          String   @default("held") // held | released | frozen | refunded
+  freezeReason    String?
+  releasedAt      DateTime?
+  createdAt       DateTime @default(now())
+
+  booking  Booking @relation(fields: [bookingId], references: [id])
+}
+
+model RefundRequest {
+  id             String   @id @default(cuid())
+  bookingId      String
+  consumerId     String
+  originalAmount Float
+  refundAmount   Float
+  refundType     String   // full | partial
+  reason         String
+  status         String   @default("pending") // pending | approved | rejected | under_review
+  adminNote      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  booking  Booking @relation(fields: [bookingId], references: [id])
+}
+
+model PayoutRecord {
+  id              String   @id @default(cuid())
+  partnerId       String
+  partnerName     String
+  grossEarning    Float
+  commissionAmount Float
+  netPayout       Float
+  payoutMethod    String   @default("Bank Transfer")
+  status          String   @default("pending") // pending | scheduled | completed | failed
+  failureReason   String?
+  scheduledDate   DateTime?
+  createdAt       DateTime @default(now())
+}
+
+model ChatMessage {
+  id         String   @id @default(cuid())
+  bookingId  String
+  senderId   String
+  senderName String
+  message    String
+  type       String   @default("text") // text | image | system
+  createdAt  DateTime @default(now())
+
+  booking  Booking @relation(fields: [bookingId], references: [id])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  body      String
+  type      String   @default("info")
+  isRead    Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+
+  user  User @relation(fields: [userId], references: [id])
+}
