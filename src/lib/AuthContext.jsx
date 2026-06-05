@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { servisaku } from '@/api/servisakuClient';
+import { servisaku, readyPromise } from '@/api/servisakuClient';
 import { appParams } from '@/lib/app-params';
+
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -10,21 +11,22 @@ export const AuthProvider = ({ children }) => {
   const [isLoadingPublicSettings, setIsLoadingPublicSettings] = useState(true);
   const [authError, setAuthError] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
-  const [appPublicSettings, setAppPublicSettings] = useState(null); // Contains only { id, public_settings }
+  const [appPublicSettings, setAppPublicSettings] = useState(null);
 
   useEffect(() => {
-    checkAppState();
+    // Wait for backend detection to finish before making any auth calls.
+    // This prevents the apiClient from hitting /api/auth/me on Netlify
+    // (where there is no backend) and getting a 200 HTML page back.
+    readyPromise.then(() => checkAppState());
   }, []);
 
   const checkAppState = async () => {
     try {
       setIsLoadingPublicSettings(true);
       setAuthError(null);
-      
-      // Mock public settings
+
       setAppPublicSettings({ public_settings: { auth_type: 'email' } });
-      
-      // Check for real JWT token OR legacy mock session
+
       const hasToken = !!localStorage.getItem('auth_token') || !!localStorage.getItem('mock_active_user_id');
       if (appParams.token || hasToken) {
         await checkUserAuth();
@@ -35,11 +37,8 @@ export const AuthProvider = ({ children }) => {
       }
       setIsLoadingPublicSettings(false);
     } catch (error) {
-      console.error('Unexpected error:', error);
-      setAuthError({
-        type: 'unknown',
-        message: error.message || 'An unexpected error occurred'
-      });
+      console.error('Unexpected error in checkAppState:', error);
+      setAuthError({ type: 'unknown', message: error.message || 'An unexpected error occurred' });
       setIsLoadingPublicSettings(false);
       setIsLoadingAuth(false);
     }
@@ -47,7 +46,6 @@ export const AuthProvider = ({ children }) => {
 
   const checkUserAuth = async () => {
     try {
-      // Now check if the user is authenticated
       setIsLoadingAuth(true);
       const currentUser = await servisaku.auth.me();
       setUser(currentUser);
@@ -55,41 +53,33 @@ export const AuthProvider = ({ children }) => {
       setIsLoadingAuth(false);
       setAuthChecked(true);
     } catch (error) {
-      console.error('User auth check failed:', error);
+      // Token expired / invalid — clear it and treat as logged out (not an error)
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('mock_active_user_id');
+      localStorage.removeItem('mock_auth_email');
       setIsLoadingAuth(false);
       setIsAuthenticated(false);
       setAuthChecked(true);
-      
-      // If user auth fails, it might be an expired token
-      if (error.status === 401 || error.status === 403) {
-        setAuthError({
-          type: 'auth_required',
-          message: 'Authentication required'
-        });
-      }
     }
   };
 
   const logout = (shouldRedirect = true) => {
     setUser(null);
     setIsAuthenticated(false);
-    // Clear both real token and legacy mock session
     localStorage.removeItem('auth_token');
     localStorage.removeItem('mock_active_user_id');
-    if (shouldRedirect) {
-      window.location.href = '/';
-    }
+    localStorage.removeItem('mock_auth_email');
+    if (shouldRedirect) window.location.href = '/';
   };
 
   const navigateToLogin = () => {
-    // Use the SDK's redirectToLogin method
     servisaku.auth.redirectToLogin(window.location.href);
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      isAuthenticated, 
+    <AuthContext.Provider value={{
+      user,
+      isAuthenticated,
       isLoadingAuth,
       isLoadingPublicSettings,
       authError,
@@ -107,8 +97,6 @@ export const AuthProvider = ({ children }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };
