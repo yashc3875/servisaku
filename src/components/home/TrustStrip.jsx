@@ -1,12 +1,15 @@
 import React from 'react';
 import { Smile, Users, ShieldCheck, Star } from 'lucide-react';
+import { useTranslation } from '@/lib/useTranslation';
 
 export function TrustStrip() {
+  const { t } = useTranslation();
+
   const kpis = [
-    { icon: Smile, value: '10,000+', label: 'Happy Customers', color: 'text-brand', bg: 'bg-brand-tint' },
-    { icon: Users, value: '5,000+', label: 'Registered Pros', color: 'text-blue-600', bg: 'bg-blue-50' },
-    { icon: ShieldCheck, value: '200k+', label: 'Services Done', color: 'text-green-600', bg: 'bg-green-50' },
-    { icon: Star, value: '4.8/5', label: 'Average Rating', color: 'text-amber-500', bg: 'bg-amber-50', fill: true },
+    { icon: Smile, value: '10,000+', label: t('Happy Customers'), color: 'text-brand', bg: 'bg-brand-tint' },
+    { icon: Users, value: '5,000+', label: t('Registered Pros'), color: 'text-blue-600', bg: 'bg-blue-50' },
+    { icon: ShieldCheck, value: '200k+', label: t('Services Done'), color: 'text-green-600', bg: 'bg-green-50' },
+    { icon: Star, value: '4.8/5', label: t('Average Rating'), color: 'text-amber-500', bg: 'bg-amber-50', fill: true },
   ];
 
   return (

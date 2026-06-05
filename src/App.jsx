@@ -10,6 +10,7 @@ import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { LanguageProvider } from '@/lib/LanguageContext';
 
 const Home = lazy(() => import('./pages/Home'));
 const Explore = lazy(() => import('./pages/Explore'));
@@ -125,16 +126,18 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="system" storageKey="servisaku-theme">
-        <AuthProvider>
-          <QueryClientProvider client={queryClientInstance}>
-            <Router>
-              <AuthenticatedApp />
-            </Router>
-            <Toaster />
-          </QueryClientProvider>
-        </AuthProvider>
-      </ThemeProvider>
+      <LanguageProvider>
+        <ThemeProvider defaultTheme="system" storageKey="servisaku-theme">
+          <AuthProvider>
+            <QueryClientProvider client={queryClientInstance}>
+              <Router>
+                <AuthenticatedApp />
+              </Router>
+              <Toaster />
+            </QueryClientProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </LanguageProvider>
     </ErrorBoundary>
   )
 }

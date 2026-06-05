@@ -1,14 +1,18 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Hexagon, MapPin, ShoppingCart, ChevronDown, User, LogOut } from 'lucide-react';
+import { Hexagon, MapPin, ShoppingCart, ChevronDown, User, LogOut, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { servisaku } from '@/api/servisakuClient';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/AuthContext';
+import { useLanguage } from '@/lib/LanguageContext';
+import { useTranslation } from '@/lib/useTranslation';
 
 export default function TopNav() {
   const { pathname } = useLocation();
   const { user } = useAuth();
+  const { lang, setLang } = useLanguage();
+  const { t } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -18,6 +22,8 @@ export default function TopNav() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const toggleLang = () => setLang(lang === 'en' ? 'ms' : 'en');
 
   return (
     <header 
@@ -38,7 +44,7 @@ export default function TopNav() {
               <span className="text-ink">Servis</span><span className="text-brand">Aku</span>
             </p>
             <p className="text-[6.5px] font-bold text-ink-secondary mt-1 tracking-wider uppercase">
-              Community. Professional. Trusted.
+              {t('Community. Professional. Trusted.')}
             </p>
           </div>
         </Link>
@@ -46,59 +52,71 @@ export default function TopNav() {
         {/* Middle: Navigation Links */}
         <nav className="hidden lg:flex items-center gap-8">
           <Link to="/explore" className="text-sm font-semibold text-ink flex items-center gap-1 hover:text-brand transition-colors">
-            Service Categories <ChevronDown className="h-4 w-4" />
+            {t('Service Categories')} <ChevronDown className="h-4 w-4" />
           </Link>
           <Link to="/how-it-works" className="text-sm font-semibold text-ink hover:text-brand transition-colors">
-            How It Works
+            {t('How It Works')}
           </Link>
           <Link to="/business" className="text-sm font-semibold text-ink hover:text-brand transition-colors">
-            For Businesses
+            {t('For Businesses')}
           </Link>
           <Link to="/promos" className="text-sm font-semibold text-ink hover:text-brand transition-colors">
-            Promotions
+            {t('Promotions')}
           </Link>
           <Link to="/help" className="text-sm font-semibold text-ink hover:text-brand transition-colors">
-            Help
+            {t('Help')}
           </Link>
         </nav>
 
         {/* Right: Actions */}
-        <div className="hidden lg:flex items-center gap-6">
-          <div className="flex items-center gap-1.5 text-ink-secondary hover:text-ink cursor-pointer transition-colors">
-            <MapPin className="h-4 w-4 text-brand" />
-            <span className="text-sm font-semibold">Kuala Lumpur</span>
-          </div>
+        <div className="flex items-center gap-3 lg:gap-6">
+          {/* Language Toggle — always visible */}
+          <button
+            onClick={toggleLang}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-hairline/30 hover:bg-raised transition-colors text-ink-secondary hover:text-ink"
+            aria-label="Switch language"
+          >
+            <Globe className="h-4 w-4" />
+            <span className="text-xs font-bold uppercase tracking-wide">{lang === 'en' ? 'BM' : 'EN'}</span>
+          </button>
 
-          <Link to="/cart" className="relative text-ink-secondary hover:text-ink transition-colors">
-            <ShoppingCart className="h-5 w-5" />
-            <span className="absolute -top-2 -right-2 bg-brand text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-surface">
-              2
-            </span>
-          </Link>
+          <div className="hidden lg:flex items-center gap-6">
+            <div className="flex items-center gap-1.5 text-ink-secondary hover:text-ink cursor-pointer transition-colors">
+              <MapPin className="h-4 w-4 text-brand" />
+              <span className="text-sm font-semibold">Kuala Lumpur</span>
+            </div>
 
-          <div className="flex items-center gap-3">
-            {user ? (
-              <div className="flex items-center gap-4">
-                <Link to="/profile" className="flex items-center gap-2 text-sm font-semibold text-ink hover:text-brand transition-colors">
-                  <div className="w-8 h-8 rounded-full bg-brand-tint flex items-center justify-center text-brand font-bold">
-                    {user.full_name?.charAt(0)}
-                  </div>
-                  {user.full_name?.split(' ')[0]}
-                </Link>
-                <button onClick={() => servisaku.auth.logout()} className="text-ink-secondary hover:text-danger transition-colors">
-                  <LogOut className="h-4 w-4" />
-                </button>
-              </div>
-            ) : (
-              <>
-                <Button variant="outline" className="border-hairline/20 hover:bg-raised text-sm font-bold rounded-xl px-5 h-10" onClick={() => servisaku.auth.redirectToLogin()}>
-                  Log In
-                </Button>
-                <Button className="bg-brand text-white hover:bg-brand/90 text-sm font-bold rounded-xl px-5 h-10 shadow-sm" onClick={() => servisaku.auth.redirectToLogin()}>
-                  Sign Up
-                </Button>
-              </>
-            )}
+            <Link to="/cart" className="relative text-ink-secondary hover:text-ink transition-colors">
+              <ShoppingCart className="h-5 w-5" />
+              <span className="absolute -top-2 -right-2 bg-brand text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-surface">
+                2
+              </span>
+            </Link>
+
+            <div className="flex items-center gap-3">
+              {user ? (
+                <div className="flex items-center gap-4">
+                  <Link to="/profile" className="flex items-center gap-2 text-sm font-semibold text-ink hover:text-brand transition-colors">
+                    <div className="w-8 h-8 rounded-full bg-brand-tint flex items-center justify-center text-brand font-bold">
+                      {user.full_name?.charAt(0)}
+                    </div>
+                    {user.full_name?.split(' ')[0]}
+                  </Link>
+                  <button onClick={() => servisaku.auth.logout()} className="text-ink-secondary hover:text-danger transition-colors">
+                    <LogOut className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <Button variant="outline" className="border-hairline/20 hover:bg-raised text-sm font-bold rounded-xl px-5 h-10" onClick={() => servisaku.auth.redirectToLogin()}>
+                    {t('Log In')}
+                  </Button>
+                  <Button className="bg-brand text-white hover:bg-brand/90 text-sm font-bold rounded-xl px-5 h-10 shadow-sm" onClick={() => servisaku.auth.redirectToLogin()}>
+                    {t('Sign Up')}
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </div>
 

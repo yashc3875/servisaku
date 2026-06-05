@@ -7,15 +7,17 @@ import CategoryGrid from '@/components/home/CategoryGrid';
 import { TrustStrip } from '@/components/home/TrustStrip';
 import { useAuth } from '@/lib/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '@/lib/useTranslation';
 
 export default function Home() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 300);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setLoading(false), 300);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
@@ -33,15 +35,15 @@ export default function Home() {
             
             <div className="inline-flex items-center gap-2 bg-orange-50 text-orange-600 px-3 py-1.5 rounded-full text-xs font-bold mb-8 w-max">
               <Heart className="size-4 fill-orange-600 text-orange-600" />
-              Malaysia's #1 Home Services Platform
+              {t("Malaysia's #1 Home Services Platform")}
             </div>
 
             <h2 className="text-[48px] lg:text-[56px] font-extrabold text-ink leading-[1.1] tracking-tight mb-6 max-w-[550px]">
-              Home services<br/>made easier with<br/><span className="text-brand">ServisAku</span>.
+              {t('Home services')}<br/>{t('made easier with')}<br/><span className="text-brand">ServisAku</span>.
             </h2>
             
             <p className="text-lg text-ink-secondary mb-12 max-w-[450px] leading-relaxed font-medium">
-              Book trusted professionals for all your home service needs. Fast, easy & secure.
+              {t('Book trusted professionals for all your home service needs. Fast, easy & secure.')}
             </p>
 
             <HeroSearch />
@@ -49,10 +51,10 @@ export default function Home() {
             {/* Trust Badges under Search (Horizontal Layout) */}
             <div className="flex flex-wrap items-center gap-6 mt-10">
               {[
-                { icon: ShieldCheck, label: 'Verified Professionals', sub: 'Background Checked', color: 'text-green-600' },
-                { icon: Tag, label: 'Transparent Pricing', sub: 'No Hidden Charges', color: 'text-green-600' },
-                { icon: Lock, label: 'Secure Payments', sub: '100% Protection', color: 'text-amber-500' },
-                { icon: ThumbsUp, label: 'Satisfaction Guarantee', sub: "We're Here for You", color: 'text-amber-500' }
+                { icon: ShieldCheck, label: t('Verified Professionals'), sub: t('Background Checked'), color: 'text-green-600' },
+                { icon: Tag, label: t('Transparent Pricing'), sub: t('No Hidden Charges'), color: 'text-green-600' },
+                { icon: Lock, label: t('Secure Payments'), sub: t('100% Protection'), color: 'text-amber-500' },
+                { icon: ThumbsUp, label: t('Satisfaction Guarantee'), sub: t("We're Here for You"), color: 'text-amber-500' }
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <div className={`${item.color}`}>
@@ -97,30 +99,30 @@ export default function Home() {
                       {[1,2,3,4,5].map(i => <Star key={i} className="size-3.5 fill-amber-400 text-amber-400" />)}
                     </div>
                   </div>
-                  <p className="text-[10px] font-medium text-ink-secondary mt-0.5">Based on 2,500+ Reviews</p>
+                  <p className="text-[10px] font-medium text-ink-secondary mt-0.5">{t('Based on 2,500+ Reviews')}</p>
                 </div>
 
                 <div className="space-y-2 mt-1">
                   <div className="flex items-center gap-2">
                     <div className="bg-red-100 p-1 rounded-full"><MapPin className="size-2.5 text-red-600" /></div>
-                    <span className="text-[10px] font-semibold text-ink">Instant Booking</span>
+                    <span className="text-[10px] font-semibold text-ink">{t('Instant Booking')}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="bg-red-100 p-1 rounded-full"><MapPin className="size-2.5 text-red-600" /></div>
-                    <span className="text-[10px] font-semibold text-ink">24/7 Support</span>
+                    <span className="text-[10px] font-semibold text-ink">{t('24/7 Support')}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="bg-green-100 p-1 rounded-full"><CheckCircle2 className="size-2.5 text-green-600" /></div>
-                    <span className="text-[10px] font-semibold text-ink">Experienced Professionals</span>
+                    <span className="text-[10px] font-semibold text-ink">{t('Experienced Professionals')}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="bg-blue-100 p-1 rounded-full"><ShieldCheck className="size-2.5 text-blue-600" /></div>
-                    <span className="text-[10px] font-semibold text-ink">Quality Services</span>
+                    <span className="text-[10px] font-semibold text-ink">{t('Quality Services')}</span>
                   </div>
                 </div>
 
                 <button className="w-full mt-1 bg-orange-50 text-orange-600 hover:bg-orange-100 py-2 rounded-lg text-xs font-bold transition-colors">
-                  View Reviews
+                  {t('View Reviews')}
                 </button>
               </div>
 
@@ -144,8 +146,8 @@ export default function Home() {
             className="bg-orange-50 rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group cursor-pointer"
           >
             <div className="relative z-10 w-3/4">
-              <h3 className="text-lg font-bold text-ink mb-1">Save 20% on your<br/><span className="text-brand">first booking!</span></h3>
-              <p className="text-[11px] text-ink-secondary font-medium leading-tight mb-3 pr-4">Use this code at checkout to get 20% off your service.</p>
+              <h3 className="text-lg font-bold text-ink mb-1">{t('Save 20% on your')}<br/><span className="text-brand">{t('first booking!')}</span></h3>
+              <p className="text-[11px] text-ink-secondary font-medium leading-tight mb-3 pr-4">{t('Use this code at checkout to get 20% off your service.')}</p>
               <div className="bg-white/80 backdrop-blur border-2 border-dashed border-brand text-brand px-4 py-2 rounded-lg text-sm font-bold w-max font-mono tracking-wider shadow-sm">
                 WELCOME20
               </div>
@@ -159,10 +161,10 @@ export default function Home() {
             className="bg-blue-50 rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group cursor-pointer"
           >
             <div className="relative z-10 w-3/4">
-              <h3 className="text-lg font-bold text-ink mb-2">Refer Friends,<br/>Earn Rewards!</h3>
-              <p className="text-[11px] text-ink-secondary font-medium leading-tight mb-4 pr-4">Get RM10 for every friend you refer.</p>
+              <h3 className="text-lg font-bold text-ink mb-2">{t('Refer Friends,')}<br/>{t('Earn Rewards!')}</h3>
+              <p className="text-[11px] text-ink-secondary font-medium leading-tight mb-4 pr-4">{t('Get RM10 for every friend you refer.')}</p>
               <button className="bg-blue-500 text-white px-5 py-2.5 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors shadow-sm w-max">
-                Refer Now
+                {t('Refer Now')}
               </button>
             </div>
             <Users className="absolute -right-4 -bottom-4 w-32 h-32 text-blue-200 group-hover:scale-105 transition-transform" strokeWidth={1.5} />
@@ -174,10 +176,10 @@ export default function Home() {
             className="bg-amber-50 rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group cursor-pointer"
           >
             <div className="relative z-10 w-3/4">
-              <h3 className="text-lg font-bold text-ink mb-2">Save More with<br/>Recurring Bookings!</h3>
-              <p className="text-[11px] text-ink-secondary font-medium leading-tight mb-4">Save up to 20% with a monthly service plan.</p>
+              <h3 className="text-lg font-bold text-ink mb-2">{t('Save More with')}<br/>{t('Recurring Bookings!')}</h3>
+              <p className="text-[11px] text-ink-secondary font-medium leading-tight mb-4">{t('Save up to 20% with a monthly service plan.')}</p>
               <button className="bg-amber-400 text-ink px-5 py-2.5 rounded-lg text-xs font-bold hover:bg-amber-500 transition-colors shadow-sm w-max">
-                Subscribe Now
+                {t('Subscribe Now')}
               </button>
             </div>
             <div className="absolute -right-2 -bottom-2 w-32 h-32 bg-white rounded-2xl shadow-sm flex flex-col items-center justify-center border border-hairline/20 group-hover:scale-105 transition-transform rotate-3">

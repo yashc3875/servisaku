@@ -1,48 +1,253 @@
-import { useAuth } from '@/lib/AuthContext';
+import { useLanguage } from '@/lib/LanguageContext';
 
 const DICTIONARY = {
   en: {
+    // Navigation
+    'Home': 'Home',
+    'Explore': 'Explore',
+    'Bookings': 'Bookings',
+    'Profile': 'Profile',
+    'Book': 'Book',
+    'Log In': 'Log In',
+    'Sign Up': 'Sign Up',
+    'Service Categories': 'Service Categories',
+    'How It Works': 'How It Works',
+    'For Businesses': 'For Businesses',
+    'Promotions': 'Promotions',
+    'Help': 'Help',
+
+    // Home Hero
+    "Malaysia's #1 Home Services Platform": "Malaysia's #1 Home Services Platform",
+    'Home services': 'Home services',
+    'made easier with': 'made easier with',
+    'Book trusted professionals for all your home service needs. Fast, easy & secure.': 'Book trusted professionals for all your home service needs. Fast, easy & secure.',
+    'Verified Professionals': 'Verified Professionals',
+    'Background Checked': 'Background Checked',
+    'Transparent Pricing': 'Transparent Pricing',
+    'No Hidden Charges': 'No Hidden Charges',
+    'Secure Payments': 'Secure Payments',
+    '100% Protection': '100% Protection',
+    'Satisfaction Guarantee': 'Satisfaction Guarantee',
+    "We're Here for You": "We're Here for You",
+    'Find Services': 'Find Services',
+    'Select Service': 'Select Service',
+    'Choose a service category': 'Choose a service category',
+    'Date': 'Date',
+    'Location': 'Location',
+    'Your location': 'Your location',
+    'View Reviews': 'View Reviews',
+    'Instant Booking': 'Instant Booking',
+    '24/7 Support': '24/7 Support',
+    'Experienced Professionals': 'Experienced Professionals',
+    'Quality Services': 'Quality Services',
+    'Based on 2,500+ Reviews': 'Based on 2,500+ Reviews',
+
+    // Category Grid
     'Popular Services': 'Popular Services',
-    'Recent Bookings': 'Recent Bookings',
-    'Explore All': 'Explore All',
+    'View All Services': 'View All Services',
+    'Starting from': 'Starting from',
+    'Home Cleaning': 'Home Cleaning',
+    'AC Service & Repair': 'AC Service & Repair',
+    'Plumbing': 'Plumbing',
+    'Electrical Services': 'Electrical Services',
+    'Painting': 'Painting',
+    'Pest Control': 'Pest Control',
+
+    // Trust Strip
+    'Happy Customers': 'Happy Customers',
+    'Registered Pros': 'Registered Pros',
+    'Services Done': 'Services Done',
+    'Average Rating': 'Average Rating',
+
+    // Promo Banners
+    'Save 20% on your': 'Save 20% on your',
+    'first booking!': 'first booking!',
+    'Use this code at checkout to get 20% off your service.': 'Use this code at checkout to get 20% off your service.',
+    'Refer Friends,': 'Refer Friends,',
+    'Earn Rewards!': 'Earn Rewards!',
+    'Get RM10 for every friend you refer.': 'Get RM10 for every friend you refer.',
+    'Refer Now': 'Refer Now',
+    'Save More with': 'Save More with',
+    'Recurring Bookings!': 'Recurring Bookings!',
+    'Save up to 20% with a monthly service plan.': 'Save up to 20% with a monthly service plan.',
+    'Subscribe Now': 'Subscribe Now',
+
+    // Explore
+    'Search services...': 'Search services...',
+    'All': 'All',
+    'Cleaning': 'Cleaning',
+    'AC': 'AC',
+    'Electrical': 'Electrical',
+
+    // Service Detail
+    'Choose Package': 'Choose Package',
+    'Add-ons': 'Add-ons',
+    'Reviews': 'Reviews',
+    'FAQs': 'FAQs',
+    'Insured': 'Insured',
+    'Book Now': 'Book Now',
+    'total': 'total',
+
+    // Booking Flow
+    'Package': 'Package',
+    'Property': 'Property',
+    'Schedule': 'Schedule',
+    'Partner': 'Partner',
+    'Extras': 'Extras',
+    'Payment': 'Payment',
+    'Next': 'Next',
+    'Confirm': 'Confirm',
+    'Processing...': 'Processing...',
+    'Property Details': 'Property Details',
+    'Property Type': 'Property Type',
+    'complete': 'complete',
+    'Promo Code': 'Promo Code',
+    'Order Summary': 'Order Summary',
+    'Total': 'Total',
+    'Payment Method': 'Payment Method',
+    'Promo applied': 'Promo applied',
+
+    // General
     'Search': 'Search',
-    "Malaysia's Trusted Platform": "Malaysia's Trusted Platform",
-    'Professional Home Services, Simplified.': 'Professional Home Services, Simplified.',
     'Verified Pros': 'Verified Pros',
     'Upfront Pricing': 'Upfront Pricing',
     'Guaranteed Quality': 'Guaranteed Quality',
-    'Book Now': 'Book Now',
     'Packages': 'Packages',
-    'Starting from': 'Starting from',
     'Duration': 'Duration',
+    'Recent Bookings': 'Recent Bookings',
+    'Explore All': 'Explore All',
+    "Malaysia's Trusted Platform": "Malaysia's Trusted Platform",
+    'Professional Home Services, Simplified.': 'Professional Home Services, Simplified.',
+    'Community. Professional. Trusted.': 'Community. Professional. Trusted.',
   },
   ms: {
+    // Navigation
+    'Home': 'Laman Utama',
+    'Explore': 'Teroka',
+    'Bookings': 'Tempahan',
+    'Profile': 'Profil',
+    'Book': 'Tempah',
+    'Log In': 'Log Masuk',
+    'Sign Up': 'Daftar',
+    'Service Categories': 'Kategori Perkhidmatan',
+    'How It Works': 'Cara Ia Berfungsi',
+    'For Businesses': 'Untuk Perniagaan',
+    'Promotions': 'Promosi',
+    'Help': 'Bantuan',
+
+    // Home Hero
+    "Malaysia's #1 Home Services Platform": 'Platform Perkhidmatan Rumah #1 Malaysia',
+    'Home services': 'Perkhidmatan rumah',
+    'made easier with': 'dipermudahkan dengan',
+    'Book trusted professionals for all your home service needs. Fast, easy & secure.': 'Tempah profesional dipercayai untuk semua keperluan perkhidmatan rumah anda. Pantas, mudah & selamat.',
+    'Verified Professionals': 'Profesional Disahkan',
+    'Background Checked': 'Latar Belakang Disemak',
+    'Transparent Pricing': 'Harga Telus',
+    'No Hidden Charges': 'Tiada Caj Tersembunyi',
+    'Secure Payments': 'Pembayaran Selamat',
+    '100% Protection': 'Perlindungan 100%',
+    'Satisfaction Guarantee': 'Jaminan Kepuasan',
+    "We're Here for You": 'Kami Sedia Membantu',
+    'Find Services': 'Cari Perkhidmatan',
+    'Select Service': 'Pilih Perkhidmatan',
+    'Choose a service category': 'Pilih kategori perkhidmatan',
+    'Date': 'Tarikh',
+    'Location': 'Lokasi',
+    'Your location': 'Lokasi anda',
+    'View Reviews': 'Lihat Ulasan',
+    'Instant Booking': 'Tempahan Segera',
+    '24/7 Support': 'Sokongan 24/7',
+    'Experienced Professionals': 'Profesional Berpengalaman',
+    'Quality Services': 'Perkhidmatan Berkualiti',
+    'Based on 2,500+ Reviews': 'Berdasarkan 2,500+ Ulasan',
+
+    // Category Grid
     'Popular Services': 'Perkhidmatan Popular',
-    'Recent Bookings': 'Tempahan Terkini',
-    'Explore All': 'Teroka Semua',
+    'View All Services': 'Lihat Semua Perkhidmatan',
+    'Starting from': 'Bermula dari',
+    'Home Cleaning': 'Pembersihan Rumah',
+    'AC Service & Repair': 'Servis & Baiki Penghawa Dingin',
+    'Plumbing': 'Paip & Saliran',
+    'Electrical Services': 'Perkhidmatan Elektrik',
+    'Painting': 'Cat Rumah',
+    'Pest Control': 'Kawalan Serangga',
+
+    // Trust Strip
+    'Happy Customers': 'Pelanggan Gembira',
+    'Registered Pros': 'Profesional Berdaftar',
+    'Services Done': 'Perkhidmatan Selesai',
+    'Average Rating': 'Penilaian Purata',
+
+    // Promo Banners
+    'Save 20% on your': 'Jimat 20% untuk',
+    'first booking!': 'tempahan pertama!',
+    'Use this code at checkout to get 20% off your service.': 'Gunakan kod ini semasa pembayaran untuk mendapat diskaun 20%.',
+    'Refer Friends,': 'Jemput Rakan,',
+    'Earn Rewards!': 'Raih Ganjaran!',
+    'Get RM10 for every friend you refer.': 'Dapatkan RM10 untuk setiap rakan yang anda jemput.',
+    'Refer Now': 'Jemput Sekarang',
+    'Save More with': 'Jimat Lebih dengan',
+    'Recurring Bookings!': 'Tempahan Berulang!',
+    'Save up to 20% with a monthly service plan.': 'Jimat sehingga 20% dengan pelan perkhidmatan bulanan.',
+    'Subscribe Now': 'Langgan Sekarang',
+
+    // Explore
+    'Search services...': 'Cari perkhidmatan...',
+    'All': 'Semua',
+    'Cleaning': 'Pembersihan',
+    'AC': 'Penghawa Dingin',
+    'Electrical': 'Elektrik',
+
+    // Service Detail
+    'Choose Package': 'Pilih Pakej',
+    'Add-ons': 'Tambahan',
+    'Reviews': 'Ulasan',
+    'FAQs': 'Soalan Lazim',
+    'Insured': 'Dilindungi Insurans',
+    'Book Now': 'Tempah Sekarang',
+    'total': 'jumlah',
+
+    // Booking Flow
+    'Package': 'Pakej',
+    'Property': 'Hartanah',
+    'Schedule': 'Jadual',
+    'Partner': 'Rakan Kongsi',
+    'Extras': 'Tambahan',
+    'Payment': 'Pembayaran',
+    'Next': 'Seterusnya',
+    'Confirm': 'Sahkan',
+    'Processing...': 'Memproses...',
+    'Property Details': 'Butiran Hartanah',
+    'Property Type': 'Jenis Hartanah',
+    'complete': 'selesai',
+    'Promo Code': 'Kod Promosi',
+    'Order Summary': 'Ringkasan Pesanan',
+    'Total': 'Jumlah',
+    'Payment Method': 'Kaedah Pembayaran',
+    'Promo applied': 'Promosi digunakan',
+
+    // General
     'Search': 'Cari',
-    "Malaysia's Trusted Platform": 'Platform Dipercayai Malaysia',
-    'Professional Home Services, Simplified.': 'Perkhidmatan Rumah Profesional, Mudah.',
     'Verified Pros': 'Pakar Bertauliah',
     'Upfront Pricing': 'Harga Telus',
     'Guaranteed Quality': 'Kualiti Terjamin',
-    'Book Now': 'Tempah Sekarang',
     'Packages': 'Pakej',
-    'Starting from': 'Bermula dari',
     'Duration': 'Tempoh',
+    'Recent Bookings': 'Tempahan Terkini',
+    'Explore All': 'Teroka Semua',
+    "Malaysia's Trusted Platform": 'Platform Dipercayai Malaysia',
+    'Professional Home Services, Simplified.': 'Perkhidmatan Rumah Profesional, Mudah.',
+    'Community. Professional. Trusted.': 'Komuniti. Profesional. Dipercayai.',
   }
 };
 
 export function useTranslation() {
-  const { user } = useAuth();
-  const lang = user?.language === 'ms' ? 'ms' : 'en';
+  const { lang } = useLanguage();
 
   const t = (key) => {
-    return DICTIONARY[lang]?.[key] || key;
+    return DICTIONARY[lang]?.[key] || DICTIONARY['en']?.[key] || key;
   };
 
-  // Helper to extract translated fields from Catalog objects
-  // e.g., tField(category, 'name') -> returns category.nameMy if lang is 'ms'
   const tField = (obj, field) => {
     if (!obj) return '';
     if (lang === 'ms' && obj[`${field}My`]) {

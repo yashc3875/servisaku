@@ -3,18 +3,20 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { Home, Compass, Calendar, User, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/AuthContext';
-
-const NAV_ITEMS = [
-  { icon: Home, label: 'Home', to: '/' },
-  { icon: Compass, label: 'Explore', to: '/explore' },
-  { icon: Search, label: 'Book', to: '/explore', isFab: true },
-  { icon: Calendar, label: 'Bookings', to: '/bookings', auth: true },
-  { icon: User, label: 'Profile', to: '/profile/edit', auth: true },
-];
+import { useTranslation } from '@/lib/useTranslation';
 
 export function BottomNav() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  const NAV_ITEMS = [
+    { icon: Home, label: t('Home'), to: '/' },
+    { icon: Compass, label: t('Explore'), to: '/explore' },
+    { icon: Search, label: t('Book'), to: '/explore', isFab: true },
+    { icon: Calendar, label: t('Bookings'), to: '/bookings', auth: true },
+    { icon: User, label: t('Profile'), to: '/profile/edit', auth: true },
+  ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-surface/80 backdrop-blur-xl border-t border-hairline pb-safe pt-2 px-4 shadow-float">

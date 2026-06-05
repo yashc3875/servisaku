@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Search, MapPin, CalendarDays, Grid, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '@/lib/useTranslation';
 
 export function HeroSearch() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [date, setDate] = useState('');
   const [location, setLocation] = useState('');
@@ -26,10 +28,10 @@ export function HeroSearch() {
         <div className="flex items-center gap-2.5 min-w-0 w-full">
           <Grid className="h-5 w-5 text-ink-tertiary group-hover:text-brand transition-colors shrink-0" />
           <div className="flex flex-col justify-center min-w-0 w-full">
-            <label className="text-[9px] sm:text-[10px] font-bold text-ink-secondary tracking-widest uppercase mb-0.5 truncate">Select Service</label>
+            <label className="text-[9px] sm:text-[10px] font-bold text-ink-secondary tracking-widest uppercase mb-0.5 truncate">{t('Select Service')}</label>
             <input 
               type="text" 
-              placeholder="Choose a service category" 
+              placeholder={t('Choose a service category')}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -37,7 +39,6 @@ export function HeroSearch() {
             />
           </div>
         </div>
-        {/* We can hide the chevron or keep it for aesthetics, let's keep it but fade it */}
         <ChevronDown className="h-4 w-4 text-ink-tertiary shrink-0 ml-2 hidden sm:block opacity-50" />
       </div>
 
@@ -49,7 +50,7 @@ export function HeroSearch() {
         <div className="flex items-center gap-2.5 min-w-0 w-full">
           <CalendarDays className="h-5 w-5 text-ink-tertiary group-hover:text-brand transition-colors shrink-0" />
           <div className="flex flex-col justify-center min-w-0 w-full relative">
-            <label className="text-[9px] sm:text-[10px] font-bold text-ink-secondary tracking-widest uppercase mb-0.5 truncate">Date</label>
+            <label className="text-[9px] sm:text-[10px] font-bold text-ink-secondary tracking-widest uppercase mb-0.5 truncate">{t('Date')}</label>
             <input 
               type="date"
               value={date}
@@ -70,10 +71,10 @@ export function HeroSearch() {
         <div className="flex items-center gap-2.5 min-w-0 w-full">
           <MapPin className="h-5 w-5 text-ink-tertiary group-hover:text-brand transition-colors shrink-0" />
           <div className="flex flex-col justify-center min-w-0 w-full">
-            <label className="text-[9px] sm:text-[10px] font-bold text-ink-secondary tracking-widest uppercase mb-0.5 truncate">Location</label>
+            <label className="text-[9px] sm:text-[10px] font-bold text-ink-secondary tracking-widest uppercase mb-0.5 truncate">{t('Location')}</label>
             <input 
               type="text" 
-              placeholder="Your location" 
+              placeholder={t('Your location')}
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -91,7 +92,7 @@ export function HeroSearch() {
           className="h-12 md:h-14 w-full md:w-auto px-6 lg:px-8 rounded-xl md:rounded-full font-bold shadow-md shadow-brand/20 transition-transform active:scale-95 text-white bg-brand hover:bg-brand/90"
           onClick={handleSearch}
         >
-          Find Services
+          {t('Find Services')}
         </Button>
       </div>
 
