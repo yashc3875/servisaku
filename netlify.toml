@@ -4,6 +4,8 @@
 
 [build.environment]
   NODE_VERSION = "20"
+  DATABASE_URL = "file:./placeholder.db"
+  CI = "true"
 
 [[redirects]]
   from = "/*"
