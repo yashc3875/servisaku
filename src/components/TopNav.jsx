@@ -32,10 +32,10 @@ export default function TopNav() {
         scrolled ? "bg-surface/95 backdrop-blur-md border-hairline/20 shadow-sm py-3" : "bg-surface border-transparent py-4"
       )}
     >
-      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
         
         {/* Left: Logo */}
-        <Link to="/" className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2 flex-shrink-0">
           <div className="flex items-center justify-center">
             <img src="/img/brand-logo.png" className="h-9 w-auto object-contain" alt="ServisAku Logo" />
           </div>
@@ -50,43 +50,43 @@ export default function TopNav() {
         </Link>
 
         {/* Middle: Navigation Links */}
-        <nav className="hidden lg:flex items-center gap-8">
-          <Link to="/explore" className="text-sm font-semibold text-ink flex items-center gap-1 hover:text-brand transition-colors">
+        <nav className="hidden lg:flex items-center justify-center gap-4 xl:gap-8 flex-1 px-4 xl:px-8">
+          <Link to="/explore" className="text-sm font-semibold text-ink flex items-center gap-1 hover:text-brand transition-colors whitespace-nowrap">
             {t('Service Categories')} <ChevronDown className="h-4 w-4" />
           </Link>
-          <Link to="/how-it-works" className="text-sm font-semibold text-ink hover:text-brand transition-colors">
+          <Link to="/how-it-works" className="text-sm font-semibold text-ink hover:text-brand transition-colors whitespace-nowrap">
             {t('How It Works')}
           </Link>
-          <Link to="/business" className="text-sm font-semibold text-ink hover:text-brand transition-colors">
+          <Link to="/business" className="text-sm font-semibold text-ink hover:text-brand transition-colors whitespace-nowrap">
             {t('For Businesses')}
           </Link>
-          <Link to="/promos" className="text-sm font-semibold text-ink hover:text-brand transition-colors">
+          <Link to="/promos" className="text-sm font-semibold text-ink hover:text-brand transition-colors whitespace-nowrap">
             {t('Promotions')}
           </Link>
-          <Link to="/help" className="text-sm font-semibold text-ink hover:text-brand transition-colors">
+          <Link to="/help" className="text-sm font-semibold text-ink hover:text-brand transition-colors whitespace-nowrap">
             {t('Help')}
           </Link>
         </nav>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-3 lg:gap-6">
+        <div className="flex items-center gap-3 lg:gap-4 xl:gap-6 flex-shrink-0">
           {/* Language Toggle — always visible */}
           <button
             onClick={toggleLang}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-hairline/30 hover:bg-raised transition-colors text-ink-secondary hover:text-ink"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-hairline/30 hover:bg-raised transition-colors text-ink-secondary hover:text-ink flex-shrink-0"
             aria-label="Switch language"
           >
             <Globe className="h-4 w-4" />
             <span className="text-xs font-bold uppercase tracking-wide">{lang === 'en' ? 'BM' : 'EN'}</span>
           </button>
 
-          <div className="hidden lg:flex items-center gap-6">
-            <div className="flex items-center gap-1.5 text-ink-secondary hover:text-ink cursor-pointer transition-colors">
+          <div className="hidden lg:flex items-center gap-4 xl:gap-6">
+            <div className="hidden xl:flex items-center gap-1.5 text-ink-secondary hover:text-ink cursor-pointer transition-colors whitespace-nowrap">
               <MapPin className="h-4 w-4 text-brand" />
               <span className="text-sm font-semibold">Kuala Lumpur</span>
             </div>
 
-            <Link to="/cart" className="relative text-ink-secondary hover:text-ink transition-colors">
+            <Link to="/cart" className="relative text-ink-secondary hover:text-ink transition-colors flex-shrink-0">
               <ShoppingCart className="h-5 w-5" />
               <span className="absolute -top-2 -right-2 bg-brand text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-surface">
                 2
@@ -96,22 +96,22 @@ export default function TopNav() {
             <div className="flex items-center gap-3">
               {user ? (
                 <div className="flex items-center gap-4">
-                  <Link to="/profile" className="flex items-center gap-2 text-sm font-semibold text-ink hover:text-brand transition-colors">
-                    <div className="w-8 h-8 rounded-full bg-brand-tint flex items-center justify-center text-brand font-bold">
+                  <Link to="/profile" className="flex items-center gap-2 text-sm font-semibold text-ink hover:text-brand transition-colors whitespace-nowrap">
+                    <div className="w-8 h-8 rounded-full bg-brand-tint flex items-center justify-center text-brand font-bold flex-shrink-0">
                       {user.full_name?.charAt(0)}
                     </div>
                     {user.full_name?.split(' ')[0]}
                   </Link>
-                  <button onClick={() => servisaku.auth.logout()} className="text-ink-secondary hover:text-danger transition-colors">
+                  <button onClick={() => servisaku.auth.logout()} className="text-ink-secondary hover:text-danger transition-colors flex-shrink-0">
                     <LogOut className="h-4 w-4" />
                   </button>
                 </div>
               ) : (
                 <>
-                  <Button variant="outline" className="border-hairline/20 hover:bg-raised text-sm font-bold rounded-xl px-5 h-10" onClick={() => servisaku.auth.redirectToLogin()}>
+                  <Button variant="outline" className="border-hairline/20 hover:bg-raised text-sm font-bold rounded-xl px-4 xl:px-5 h-10 whitespace-nowrap" onClick={() => servisaku.auth.redirectToLogin()}>
                     {t('Log In')}
                   </Button>
-                  <Button className="bg-brand text-white hover:bg-brand/90 text-sm font-bold rounded-xl px-5 h-10 shadow-sm" onClick={() => servisaku.auth.redirectToLogin()}>
+                  <Button className="bg-brand text-white hover:bg-brand/90 text-sm font-bold rounded-xl px-4 xl:px-5 h-10 shadow-sm whitespace-nowrap" onClick={() => servisaku.auth.redirectToLogin()}>
                     {t('Sign Up')}
                   </Button>
                 </>
