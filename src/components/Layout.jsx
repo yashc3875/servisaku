@@ -5,6 +5,7 @@ import TopNav from './TopNav';
 export default function Layout() {
   const location = useLocation();
   const hideBottomNav = location.pathname.startsWith('/book/') || 
+                        location.pathname.startsWith('/service/') ||
                         location.pathname.startsWith('/payment') || 
                         location.pathname.startsWith('/chat');
 
