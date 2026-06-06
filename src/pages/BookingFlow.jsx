@@ -11,7 +11,8 @@ import { servisaku } from '@/api/servisakuClient';
 import { SERVICES, CITIES } from '@/lib/services';
 import {
   SLOT_GROUPS, PROPERTY_TYPES, BEDROOM_OPTIONS,
-  calculatePrice, PAYMENT_METHODS, formatBookingRef
+  calculatePrice, PAYMENT_METHODS, formatBookingRef,
+  getSizeMultiplier, isAreaScaled
 } from '@/lib/bookingEngine';
 import { getPackages, getAddons } from '@/lib/packageData';
 import CouponInput from '../components/CouponInput';
@@ -35,7 +36,7 @@ export default function BookingFlow() {
   const [pkgIdx, setPkgIdx] = useState(0);
   const [addons, setAddons] = useState([]);
   const [propertyType, setPropertyType] = useState('');
-  const [bedrooms, setBedrooms] = useState('');
+  const [bedrooms, setBedrooms] = useState('2br');
   const [city, setCity] = useState('');
   const [address, setAddress] = useState('');
   const [date, setDate] = useState('');
@@ -73,9 +74,10 @@ export default function BookingFlow() {
   if (!service || !packages || packages.length === 0) return null;
 
   const Icon = service.icon;
+  const sizeMultiplier = isAreaScaled(serviceId) ? getSizeMultiplier(bedrooms) : 1.0;
   const pricing = calculatePrice(
     packages[pkgIdx].price, 1.0,
-    availableAddons.filter(a => addons.includes(a.id)), coupon
+    availableAddons.filter(a => addons.includes(a.id)), coupon, 1, sizeMultiplier
   );
 
   const toggleAddon = id => setAddons(prev => prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id]);
@@ -277,23 +279,36 @@ export default function BookingFlow() {
                 <Home className="h-4 w-4 text-brand" /> Property Type
               </label>
               <div className="grid grid-cols-2 gap-2">
-                {PROPERTY_TYPES.map(t => (
-                  <button key={t} onClick={() => setPropertyType(t)}
-                    className={`py-3 px-3 text-xs rounded-2xl border-2 font-medium transition-all text-left ${propertyType === t ? 'border-brand bg-brand-tint text-brand font-bold' : 'border-hairline/10 bg-surface text-ink-secondary'}`}>
-                    {t}
+                {PROPERTY_TYPES.map(pt => (
+                  <button key={pt} onClick={() => setPropertyType(pt)}
+                    className={`py-3 px-3 text-xs rounded-2xl border-2 font-medium transition-all text-left ${propertyType === pt ? 'border-brand bg-brand-tint text-brand font-bold' : 'border-hairline/10 bg-surface text-ink-secondary'}`}>
+                    {pt}
                   </button>
                 ))}
               </div>
             </div>
             <div>
               <label className="text-sm font-bold mb-2 block">Bedrooms</label>
+              {isAreaScaled(serviceId) && (
+                <p className="text-xs text-ink-secondary mb-3">Price adjusts based on your home size</p>
+              )}
               <div className="grid grid-cols-3 gap-2">
-                {BEDROOM_OPTIONS.map(b => (
-                  <button key={b} onClick={() => setBedrooms(b)}
-                    className={`py-3 text-[11px] rounded-2xl border-2 font-medium transition-all ${bedrooms === b ? 'border-brand bg-brand-tint text-brand font-bold' : 'border-hairline/10 bg-surface text-ink-secondary'}`}>
-                    {b}
-                  </button>
-                ))}
+                {BEDROOM_OPTIONS.map(b => {
+                  const active = bedrooms === b.value;
+                  const showMultiplier = isAreaScaled(serviceId);
+                  const adjustedPrice = showMultiplier ? Math.round(packages[pkgIdx].price * b.multiplier) : null;
+                  return (
+                    <button key={b.value} onClick={() => setBedrooms(b.value)}
+                      className={`py-3 px-2 rounded-2xl border-2 font-medium transition-all flex flex-col items-center gap-1 ${active ? 'border-brand bg-brand-tint text-brand font-bold' : 'border-hairline/10 bg-surface text-ink-secondary'}`}>
+                      <span className="text-[11px]">{b.label}</span>
+                      {showMultiplier && (
+                        <span className={`text-[10px] font-bold ${active ? 'text-brand' : 'text-ink-tertiary'}`}>
+                          RM{adjustedPrice}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -471,9 +486,18 @@ export default function BookingFlow() {
               <p className="text-sm font-bold mb-3">Order Summary</p>
               <div className="space-y-1.5 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-ink-secondary">{packages[pkgIdx].name} Package</span>
-                  <span>RM{packages[pkgIdx].price}</span>
+                  <span className="text-ink-secondary">
+                    {packages[pkgIdx].name}
+                    {isAreaScaled(serviceId) && ` (${BEDROOM_OPTIONS.find(b => b.value === bedrooms)?.label || bedrooms})`}
+                  </span>
+                  <span>RM{pricing.sizedBasePrice}</span>
                 </div>
+                {isAreaScaled(serviceId) && getSizeMultiplier(bedrooms) !== 1.0 && (
+                  <div className="flex justify-between text-ink-tertiary">
+                    <span className="italic">Base RM{packages[pkgIdx].price} × {getSizeMultiplier(bedrooms)}x size</span>
+                    <span></span>
+                  </div>
+                )}
                 {availableAddons.filter(a => addons.includes(a.id)).map(a => (
                   <div key={a.id} className="flex justify-between">
                     <span className="text-ink-secondary">{a.label}</span>

@@ -31,7 +31,29 @@ export const SLOT_GROUPS = {
 };
 
 export const PROPERTY_TYPES = ['Apartment', 'Condo', 'Terrace House', 'Semi-D', 'Bungalow', 'Office'];
-export const BEDROOM_OPTIONS = ['Studio', '1 Bedroom', '2 Bedrooms', '3 Bedrooms', '4 Bedrooms', '5+ Bedrooms'];
+
+export const BEDROOM_OPTIONS = [
+  { label: 'Studio',      value: 'studio',  multiplier: 0.8 },
+  { label: '1 Bedroom',   value: '1br',     multiplier: 0.9 },
+  { label: '2 Bedrooms',  value: '2br',     multiplier: 1.0 },
+  { label: '3 Bedrooms',  value: '3br',     multiplier: 1.3 },
+  { label: '4 Bedrooms',  value: '4br',     multiplier: 1.6 },
+  { label: '5+ Bedrooms', value: '5br',     multiplier: 2.0 },
+];
+
+// Categories where price scales with property size (area-based services)
+export const AREA_SCALED_CATEGORIES = ['home-cleaning', 'cleaning', 'painting', 'pest-control'];
+
+export function getSizeMultiplier(bedroomValue) {
+  const opt = BEDROOM_OPTIONS.find(b => b.value === bedroomValue);
+  return opt ? opt.multiplier : 1.0;
+}
+
+export function isAreaScaled(serviceId) {
+  const norm = serviceId === 'home-cleaning' ? 'cleaning' :
+               serviceId === 'ac-servicing' ? 'ac' : serviceId;
+  return AREA_SCALED_CATEGORIES.includes(norm) || AREA_SCALED_CATEGORIES.includes(serviceId);
+}
 
 export function canTransition(from, to) {
   return STATUS_TRANSITIONS[from]?.includes(to) || false;
@@ -48,8 +70,8 @@ export function isRefundEligible(booking) {
   return false;
 }
 
-export function calculatePrice(basePrice, pkgMultiplier, addons, coupon, surge = 1) {
-  const pkgPrice = Math.round(basePrice * pkgMultiplier);
+export function calculatePrice(basePrice, pkgMultiplier, addons, coupon, surge = 1, sizeMultiplier = 1) {
+  const pkgPrice = Math.round(basePrice * pkgMultiplier * sizeMultiplier);
   const addonTotal = addons.reduce((s, a) => s + a.price, 0);
   const subtotal = Math.round((pkgPrice + addonTotal) * surge);
   let discount = 0;
@@ -60,7 +82,7 @@ export function calculatePrice(basePrice, pkgMultiplier, addons, coupon, surge =
   }
   const platformFee = Math.round(subtotal * 0.2);
   const partnerPayout = subtotal - platformFee;
-  return { subtotal, discount, total: subtotal - discount, platformFee, partnerPayout };
+  return { subtotal, discount, total: subtotal - discount, platformFee, partnerPayout, sizedBasePrice: pkgPrice };
 }
 
 export function getNextStatuses(status) {

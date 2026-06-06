@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Star, Clock, Shield, Check, ChevronDown, ChevronUp, Plus, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Star, Clock, Shield, Check, ChevronDown, ChevronUp, Plus, ArrowRight, Home } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { SERVICES } from '@/lib/services';
 import { useTranslation } from '@/lib/useTranslation';
 import { getPackages, getAddons } from '@/lib/packageData';
 import { formatMYR, cn } from '@/lib/utils';
 import { safeMotion, variants } from '@/lib/design/motion';
+import { isAreaScaled, BEDROOM_OPTIONS } from '@/lib/bookingEngine';
 
 const FAQS = [
   { q: 'What should I do before the team arrives?', a: 'Clear walkways and secure valuables. No need to provide cleaning supplies — we bring everything.' },
@@ -36,9 +37,13 @@ export default function ServiceDetail() {
   if (!service || !packages || packages.length === 0) return <div className="flex justify-center pt-32"><div className="w-6 h-6 border-2 border-hairline/10 border-t-brand rounded-full animate-spin" /></div>;
 
   const Icon = service.icon;
+  const areaScaled = isAreaScaled(serviceId);
   const pkgPrice = packages[pkgIdx].price;
   const addonTotal = addons.reduce((sum, id) => sum + (availableAddons.find(a => a.id === id)?.price || 0), 0);
   const totalPrice = pkgPrice + addonTotal;
+  // For area-scaled services, show the range
+  const minPrice = areaScaled ? Math.round(pkgPrice * 0.8) : pkgPrice;
+  const maxPrice = areaScaled ? Math.round(pkgPrice * 2.0) : pkgPrice;
 
   const toggleAddon = (id) => setAddons(prev => prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id]);
 
@@ -217,9 +222,25 @@ export default function ServiceDetail() {
             <div>
               <p className="text-xs text-ink-secondary">{packages[pkgIdx].name} package{addons.length > 0 ? ` + ${addons.length} add-on${addons.length > 1 ? 's' : ''}` : ''}</p>
               <div className="flex items-baseline gap-1">
-                <span className="text-xl font-bold text-brand">{formatMYR(totalPrice)}</span>
-                <span className="text-xs text-ink-secondary">total</span>
+                {areaScaled ? (
+                  <>
+                    <span className="text-xs text-ink-secondary">from</span>
+                    <span className="text-xl font-bold text-brand">{formatMYR(minPrice + addonTotal)}</span>
+                    <span className="text-xs text-ink-secondary">–</span>
+                    <span className="text-sm font-bold text-ink-secondary">{formatMYR(maxPrice + addonTotal)}</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-xl font-bold text-brand">{formatMYR(totalPrice)}</span>
+                    <span className="text-xs text-ink-secondary">total</span>
+                  </>
+                )}
               </div>
+              {areaScaled && (
+                <p className="text-[10px] text-ink-tertiary flex items-center gap-1 mt-0.5">
+                  <Home className="h-3 w-3" /> Price varies by property size
+                </p>
+              )}
             </div>
             <Link to={`/book/${service.id}?package=${pkgIdx}&addons=${addons.join(',')}`}
               className="bg-accent text-ink-inverse rounded-xl px-6 h-12 shadow-e2 font-semibold inline-flex items-center gap-2 transition-transform active:scale-95">
