@@ -23,7 +23,16 @@ const REVIEWS = [
 ];
 
 export default function ServiceDetail() {
-  const { t, tField } = useTranslation();
+  const { t, tField, lang } = useTranslation();
+
+  const faqs = lang === 'ms' ? [
+    { q: 'Apa yang perlu saya lakukan sebelum pasukan tiba?', a: 'Kosongkan laluan dan simpan barang berharga. Tidak perlu sediakan bahan pembersih — kami membawa semuanya.' },
+    { q: 'Adakah profesional anda dilindungi insurans?', a: 'Ya, semua rakan kongsi ServisAku dilindungi insurans sepenuhnya. Sebarang kerosakan tidak sengaja akan ditanggung.' },
+    { q: 'Bolehkah saya meminta rakan kongsi yang sama?', a: 'Sudah tentu! Selepas tempahan pertama, anda boleh menetapkan rakan kongsi sebagai kegemaran dan meminta mereka secara langsung.' },
+    { q: 'Bagaimana jika saya tidak berpuas hati?', a: 'Kami menawarkan kerja semula percuma dalam masa 48 jam, tanpa soalan. Kepuasan pelanggan adalah keutamaan kami.' },
+  ] : FAQS;
+
+  const reviewDates = lang === 'ms' ? { '2 days ago': '2 hari lepas', '1 week ago': '1 minggu lepas', '2 weeks ago': '2 minggu lepas' } : {};
   const { serviceId } = useParams();
   const navigate = useNavigate();
   const service = SERVICES.find(s => s.id === serviceId);
@@ -77,7 +86,7 @@ export default function ServiceDetail() {
           <div className="flex items-center gap-1.5">
             <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
             <span className="font-bold text-sm text-ink">4.8</span>
-            <span className="text-xs text-ink-secondary">(2.4k reviews)</span>
+            <span className="text-xs text-ink-secondary">(2.4k {t('reviews')})</span>
           </div>
           <div className="w-px h-5 bg-hairline/10" />
           <div className="flex items-center gap-1.5 text-sm text-ink-secondary">
@@ -86,13 +95,13 @@ export default function ServiceDetail() {
           <div className="w-px h-5 bg-hairline/10" />
           <div className="flex items-center gap-1.5 text-sm text-ink-secondary">
             <Shield className="h-3.5 w-3.5 text-brand" />
-            <span className="text-xs font-medium text-brand">Insured</span>
+            <span className="text-xs font-medium text-brand">{t('Insured')}</span>
           </div>
         </div>
 
         {/* Package Selector */}
         <div>
-          <h3 className="text-base font-bold mb-3 text-ink">Choose Package</h3>
+          <h3 className="text-base font-bold mb-3 text-ink">{t('Choose Package')}</h3>
           <div className="space-y-2.5">
             {packages.map((pkg, i) => {
               const active = pkgIdx === i;
@@ -110,15 +119,15 @@ export default function ServiceDetail() {
                       )}>
                         {active && <Check className="h-3 w-3 text-ink-inverse" />}
                       </div>
-                      <span className="font-bold text-sm text-ink">{pkg.name}</span>
-                      {pkg.isPopular && <span className="text-[9px] bg-accent text-ink-inverse px-2 py-0.5 rounded-full font-bold">POPULAR</span>}
+                      <span className="font-bold text-sm text-ink">{tField(pkg, 'name')}</span>
+                      {pkg.isPopular && <span className="text-[9px] bg-accent text-ink-inverse px-2 py-0.5 rounded-full font-bold">{t('Most Popular').toUpperCase()}</span>}
                     </div>
                     <span className="font-bold text-brand">{formatMYR(pkg.price)}</span>
                   </div>
-                  <p className="text-xs text-ink-secondary mb-2 pl-7">{pkg.desc}</p>
+                  <p className="text-xs text-ink-secondary mb-2 pl-7">{tField(pkg, 'desc')}</p>
                   {active && (
                     <ul className="pl-7 space-y-1">
-                      {pkg.inclusions.map((item, j) => (
+                      {(tField(pkg, 'inclusions') || pkg.inclusions).map((item, j) => (
                         <li key={j} className="flex items-center gap-1.5 text-xs text-ink">
                           <Check className="h-3 w-3 text-brand shrink-0" />{item}
                         </li>
@@ -134,7 +143,7 @@ export default function ServiceDetail() {
         {/* Add-ons */}
         {availableAddons.length > 0 && (
           <div>
-            <h3 className="text-base font-bold mb-3 text-ink">Add-ons</h3>
+            <h3 className="text-base font-bold mb-3 text-ink">{t('Add-ons')}</h3>
             <div className="grid grid-cols-2 gap-2">
               {availableAddons.map(addon => {
                 const active = addons.includes(addon.id);
@@ -145,7 +154,7 @@ export default function ServiceDetail() {
                       active ? "border-brand bg-brand-tint" : "border-hairline/10 bg-surface"
                     )}>
                     <div className="flex items-center justify-between w-full">
-                      <span className="text-xs font-semibold text-ink">{addon.label}</span>
+                      <span className="text-xs font-semibold text-ink">{tField(addon, 'label')}</span>
                       <div className={cn(
                         "w-5 h-5 rounded-full flex items-center justify-center transition-all",
                         active ? "bg-brand" : "bg-raised"
@@ -164,7 +173,7 @@ export default function ServiceDetail() {
         {/* Reviews */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-bold text-ink">Reviews</h3>
+            <h3 className="text-base font-bold text-ink">{t('Reviews')}</h3>
             <div className="flex items-center gap-1">
               <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
               <span className="font-bold text-sm text-ink">4.8</span>
@@ -187,7 +196,7 @@ export default function ServiceDetail() {
                   </div>
                 </div>
                 <p className="text-xs text-ink-secondary leading-relaxed">{r.comment}</p>
-                <p className="text-[10px] text-ink-tertiary mt-2">{r.date}</p>
+                <p className="text-[10px] text-ink-tertiary mt-2">{reviewDates[r.date] || r.date}</p>
               </div>
             ))}
           </div>
@@ -195,9 +204,9 @@ export default function ServiceDetail() {
 
         {/* FAQ */}
         <div>
-          <h3 className="text-base font-bold mb-3 text-ink">FAQs</h3>
+          <h3 className="text-base font-bold mb-3 text-ink">{t('FAQs')}</h3>
           <div className="space-y-2">
-            {FAQS.map((faq, i) => (
+            {faqs.map((faq, i) => (
               <div key={i} className="bg-surface rounded-2xl border border-hairline/10 overflow-hidden shadow-e1">
                 <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between px-4 py-3.5 text-left">
@@ -220,11 +229,11 @@ export default function ServiceDetail() {
         <div className="max-w-lg mx-auto bg-surface/95 backdrop-blur-xl border-t border-hairline/10 px-5 py-4">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-xs text-ink-secondary">{packages[pkgIdx].name} package{addons.length > 0 ? ` + ${addons.length} add-on${addons.length > 1 ? 's' : ''}` : ''}</p>
+              <p className="text-xs text-ink-secondary">{tField(packages[pkgIdx], 'name')} {t('Package').toLowerCase()}{addons.length > 0 ? ` + ${addons.length} ${addons.length > 1 ? t('add-ons') : t('add-on')}` : ''}</p>
               <div className="flex items-baseline gap-1">
                 {areaScaled ? (
                   <>
-                    <span className="text-xs text-ink-secondary">from</span>
+                    <span className="text-xs text-ink-secondary">{t('from')}</span>
                     <span className="text-xl font-bold text-brand">{formatMYR(minPrice + addonTotal)}</span>
                     <span className="text-xs text-ink-secondary">–</span>
                     <span className="text-sm font-bold text-ink-secondary">{formatMYR(maxPrice + addonTotal)}</span>
@@ -232,13 +241,13 @@ export default function ServiceDetail() {
                 ) : (
                   <>
                     <span className="text-xl font-bold text-brand">{formatMYR(totalPrice)}</span>
-                    <span className="text-xs text-ink-secondary">total</span>
+                    <span className="text-xs text-ink-secondary">{t('total')}</span>
                   </>
                 )}
               </div>
               {areaScaled && (
                 <p className="text-[10px] text-ink-tertiary flex items-center gap-1 mt-0.5">
-                  <Home className="h-3 w-3" /> Price varies by property size
+                  <Home className="h-3 w-3" /> {t('Price varies by property size')}
                 </p>
               )}
             </div>
