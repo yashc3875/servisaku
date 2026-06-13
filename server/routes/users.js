@@ -4,6 +4,7 @@ import { prisma } from '../db.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { asyncHandler, ApiError, isAdmin } from '../lib/access.js';
+import { findEligiblePartners } from '../lib/matching.js';
 
 const router = Router();
 router.use(authenticate);
@@ -28,9 +29,17 @@ function mapUserOut(u, { admin = false, self = false } = {}) {
   return base;
 }
 
-// GET /api/users — admin: full directory; everyone else: verified partners only
+// GET /api/users — admin: full directory; everyone else: verified partners only.
+// `?service_id=` engages the matching engine: only partners admin-verified for that
+// specific service are returned (used by the booking partner-picker).
 router.get('/', asyncHandler(async (req, res) => {
   const admin = isAdmin(req.user);
+
+  if (req.query.service_id) {
+    const { partners } = await findEligiblePartners(String(req.query.service_id), { city: req.query.city ? String(req.query.city) : undefined });
+    return res.json(partners.map((u) => mapUserOut(u, { admin })));
+  }
+
   const where = admin
     ? {}
     : { role: 'partner', partnerVerified: true };

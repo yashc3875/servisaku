@@ -6,6 +6,7 @@ import { validate } from '../middleware/validate.js';
 import { ApiError, asyncHandler, findUserByEmail, getBookingOr404, isAdmin, assertBookingParticipant } from '../lib/access.js';
 import { priceBooking } from '../lib/pricing.js';
 import { resolveService, validateServiceParams } from '../lib/catalog.js';
+import { isPartnerEligible } from '../lib/matching.js';
 import { canTransition } from '../../src/lib/bookingEngine.js';
 
 const router = Router();
@@ -131,6 +132,11 @@ router.post('/', validate(createSchema), asyncHandler(async (req, res) => {
     serviceData.propertySize = body.bedrooms;
   }
   validateServiceParams(service.category?.workflowConfig, serviceData);
+
+  // A requested partner must be admin-verified for this specific service.
+  if (partner && !(await isPartnerEligible(partner.id, service.id))) {
+    throw new ApiError(400, 'Selected partner is not qualified for this service');
+  }
 
   const pricing = await priceBooking(prisma, {
     serviceId: body.service_id,

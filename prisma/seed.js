@@ -52,6 +52,24 @@ async function main() {
     create: { email: 'user@servisaku.my', passwordHash: userPw, fullName: 'Demo User', role: 'consumer', city: 'Kuala Lumpur' },
   });
 
+  // --- Partner specializations (matching engine) ---
+  // Maps the demo partners to the services they're admin-verified to perform.
+  const specMap = [
+    { partner: partner1, slug: 'cleaning', years: 5 },   // Ali — cleaning
+    { partner: partner2, slug: 'cleaning', years: 3 },   // Raj — cleaning
+    { partner: partner4, slug: 'plumbing', years: 6 },   // Siti — plumbing
+    { partner: partner3, slug: 'electrical', years: 4 }, // David — electrical
+  ];
+  for (const { partner, slug, years } of specMap) {
+    const service = await prisma.service.findUnique({ where: { slug } });
+    if (!service) continue;
+    await prisma.partnerSpecialization.upsert({
+      where: { partnerId_serviceId: { partnerId: partner.id, serviceId: service.id } },
+      update: { verifiedByAdmin: true, isActive: true, yearsExperience: years },
+      create: { partnerId: partner.id, serviceId: service.id, verifiedByAdmin: true, isActive: true, yearsExperience: years },
+    });
+  }
+
   // --- Coupons ---
   await prisma.coupon.upsert({
     where: { code: 'WELCOME20' },

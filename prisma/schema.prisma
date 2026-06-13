@@ -44,6 +44,7 @@ model User {
   bookingsAsPartner  Booking[]      @relation("PartnerBookings")
   reviews            Review[]
   notifications      Notification[]
+  specializations    PartnerSpecialization[]
 
   @@index([role, partnerVerified])
 }
@@ -290,10 +291,11 @@ model Service {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  category ServiceCategory  @relation(fields: [categoryId], references: [id])
-  packages ServicePackage[]
-  addons   ServiceAddon[]
-  bookings Booking[]
+  category        ServiceCategory  @relation(fields: [categoryId], references: [id])
+  packages        ServicePackage[]
+  addons          ServiceAddon[]
+  bookings        Booking[]
+  specializations PartnerSpecialization[]
 
   @@index([categoryId, isActive])
 }
@@ -345,4 +347,23 @@ model PriceRule {
   validFrom  DateTime?
   validUntil DateTime?
   createdAt  DateTime  @default(now())
+}
+
+// Which services a partner is qualified to perform. Dispatch/matching filters on
+// (serviceId, verifiedByAdmin) so only admin-vetted partners are offered a job.
+model PartnerSpecialization {
+  id              String   @id @default(cuid())
+  partnerId       String
+  serviceId       String
+  verifiedByAdmin Boolean  @default(false)
+  yearsExperience Int?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  partner User    @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerId, serviceId])
+  @@index([serviceId, verifiedByAdmin, isActive])
 }

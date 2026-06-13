@@ -10,9 +10,11 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../db.js';
 import { validate } from '../middleware/validate.js';
+import { authenticate } from '../middleware/auth.js';
 import { asyncHandler } from '../lib/access.js';
 import { listServices, resolveServiceOr404, mapServiceSummary, mapServiceDetail, buildSla } from '../lib/catalog.js';
 import { priceBooking } from '../lib/pricing.js';
+import { findEligiblePartners } from '../lib/matching.js';
 import { SLOT_GROUPS } from '../../src/lib/bookingEngine.js';
 
 const router = Router();
@@ -63,6 +65,27 @@ router.get('/services/:id/availability', asyncHandler(async (req, res) => {
     lead_time_hours: sla.lead_time_hours,
     emergency_available: sla.emergency_available,
     days: result,
+  });
+}));
+
+// GET /services/:id/partners — matching engine: admin-verified partners specialized
+// in this service (optionally filtered by city). Requires auth (exposes partner info).
+router.get('/services/:id/partners', authenticate, asyncHandler(async (req, res) => {
+  const { service, partners } = await findEligiblePartners(req.params.id, {
+    city: req.query.city ? String(req.query.city) : undefined,
+  });
+  res.json({
+    service_id: service.id,
+    service_slug: service.slug,
+    partners: partners.map((p) => ({
+      id: p.id,
+      full_name: p.fullName,
+      city: p.city,
+      bio: p.bio,
+      avatar_url: p.avatarUrl,
+      partner_rating: p.partnerRating,
+      years_experience: p.yearsExperience ?? null,
+    })),
   });
 }));
 
