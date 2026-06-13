@@ -35,28 +35,41 @@ const patch = (path, body) => request('PATCH', path, body);
 const del = (path) => request('DELETE', path);
 
 // --- Entity class that matches MockEntity interface ---
+// Entity name → API route. Lowercasing the class name doesn't match the server
+// mounts (ChatMessage → /api/chat, not /api/chatmessages), so map explicitly.
+const ENTITY_PATHS = {
+  User: '/users',
+  Booking: '/bookings',
+  Coupon: '/coupons',
+  Review: '/reviews',
+  EscrowLedger: '/escrow',
+  RefundRequest: '/refunds',
+  PayoutRecord: '/payouts',
+  ChatMessage: '/chat',
+  Notification: '/notifications',
+  PartnerLocation: '/partner-locations',
+};
+
 class ApiEntity {
   constructor(name) {
     this.name = name;
-    this.path = `/api/${name.toLowerCase()}s`; // e.g. /api/bookings
+    this.path = ENTITY_PATHS[name] || `/${name.toLowerCase()}s`;
   }
 
   async get(id) {
-    return fetch(`${this.path}/${id}`, {
-      headers: { Authorization: `Bearer ${getToken()}` },
-    }).then(r => r.json());
+    return request('GET', `${this.path}/${id}`);
   }
 
   async create(payload) {
-    return request('POST', `/${this.name.toLowerCase()}s`, payload);
+    return request('POST', this.path, payload);
   }
 
   async update(id, payload) {
-    return request('PATCH', `/${this.name.toLowerCase()}s/${id}`, payload);
+    return request('PATCH', `${this.path}/${id}`, payload);
   }
 
   async delete(id) {
-    return request('DELETE', `/${this.name.toLowerCase()}s/${id}`);
+    return request('DELETE', `${this.path}/${id}`);
   }
 
   async filter(query = {}, orderBy = null, limit = null) {
@@ -66,7 +79,7 @@ class ApiEntity {
     }
     if (orderBy) params.set('_orderBy', orderBy);
     if (limit) params.set('_limit', String(limit));
-    return request('GET', `/${this.name.toLowerCase()}s?${params.toString()}`);
+    return request('GET', `${this.path}?${params.toString()}`);
   }
 
   subscribe() { return () => {}; } // no-op, real-time via polling or SSE later
@@ -122,6 +135,7 @@ export const apiClient = {
     PayoutRecord: new ApiEntity('PayoutRecord'),
     ChatMessage: new ApiEntity('ChatMessage'),
     Notification: new ApiEntity('Notification'),
+    PartnerLocation: new ApiEntity('PartnerLocation'),
   },
 
   integrations: {

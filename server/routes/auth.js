@@ -1,10 +1,37 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { z } from 'zod';
 import { prisma } from '../db.js';
 import { authenticate } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
 
 const router = Router();
+
+const registerSchema = z.object({
+  email: z.string().email().max(254).transform((s) => s.toLowerCase()),
+  password: z.string().min(8).max(128),
+  fullName: z.string().min(1).max(120),
+  // Self-registration may never create privileged accounts.
+  role: z.enum(['consumer', 'partner']).default('consumer'),
+});
+
+const loginSchema = z.object({
+  email: z.string().email().max(254).transform((s) => s.toLowerCase()),
+  password: z.string().min(1).max(128),
+});
+
+// Fields a user may change on their own profile. Privileged flags
+// (role, partnerVerified, partnerRating) are admin-only via PATCH /api/users/:id.
+const meSchema = z.object({
+  fullName: z.string().min(1).max(120).optional(),
+  phone: z.string().max(30).nullish(),
+  city: z.string().max(100).nullish(),
+  bio: z.string().max(2000).nullish(),
+  avatarUrl: z.string().max(2000).nullish(),
+  partnerCategory: z.string().max(100).nullish(),
+  bankAccount: z.string().max(100).nullish(),
+});
 
 function signToken(user) {
   return jwt.sign(
@@ -15,10 +42,9 @@ function signToken(user) {
 }
 
 // POST /api/auth/register
-router.post('/register', async (req, res, next) => {
+router.post('/register', validate(registerSchema), async (req, res, next) => {
   try {
-    const { email, password, fullName, role = 'consumer' } = req.body;
-    if (!email || !password || !fullName) return res.status(400).json({ error: 'Missing fields' });
+    const { email, password, fullName, role } = req.body;
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) return res.status(409).json({ error: 'Email already exists' });
@@ -34,7 +60,7 @@ router.post('/register', async (req, res, next) => {
 });
 
 // POST /api/auth/login
-router.post('/login', async (req, res, next) => {
+router.post('/login', validate(loginSchema), async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await prisma.user.findUnique({ where: { email } });
@@ -57,11 +83,10 @@ router.get('/me', authenticate, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// PATCH /api/auth/me
-router.patch('/me', authenticate, async (req, res, next) => {
+// PATCH /api/auth/me — whitelisted profile fields only
+router.patch('/me', authenticate, validate(meSchema), async (req, res, next) => {
   try {
-    const { passwordHash, ...data } = req.body; // never allow password update here
-    const user = await prisma.user.update({ where: { id: req.user.id }, data });
+    const user = await prisma.user.update({ where: { id: req.user.id }, data: req.body });
     res.json(sanitize(user));
   } catch (err) { next(err); }
 });

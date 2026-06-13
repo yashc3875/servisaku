@@ -46,6 +46,8 @@ model Booking {
   notes           String?
   couponCode      String?
   discountAmount  Float     @default(0)
+  paymentMethod   String?
+  paymentStatus   String    @default("pending") // pending | paid | escrowed | refunded | failed
   consumerId      String
   partnerId       String?
   createdAt       DateTime  @default(now())
@@ -136,11 +138,27 @@ model ChatMessage {
   bookingId  String
   senderId   String
   senderName String
+  senderRole String?
   message    String
   type       String   @default("text") // text | image | system
+  fileUrl    String?
+  isRead     Boolean  @default(false)
+  readAt     DateTime?
   createdAt  DateTime @default(now())
 
   booking  Booking @relation(fields: [bookingId], references: [id])
+}
+
+model PartnerLocation {
+  id          String   @id @default(cuid())
+  partnerId   String   @unique
+  partnerName String?
+  lat         Float?
+  lng         Float?
+  isOnline    Boolean  @default(false)
+  isOnJob     Boolean  @default(false)
+  lastSeen    DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Notification {

@@ -99,7 +99,14 @@ export default function BookingFlow() {
     setSubmitting(true);
     try {
       const booking = await servisaku.entities.Booking.create({
+        // Catalog ids — the real backend recomputes the authoritative price from
+        // these and ignores the client-side amounts below.
+        service_id: serviceId,
+        package_id: packages[pkgIdx].id,
+        addon_ids: addons,
+        bedrooms,
         service_type: service.name,
+        // Legacy display/demo-mode fields (stripped by the server's schema).
         consumer_email: user.email,
         consumer_name: user.full_name || 'Guest',
         partner_email: selectedPartner?.email || null,

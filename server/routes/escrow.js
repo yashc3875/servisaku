@@ -1,3 +1,59 @@
+import { Router } from 'express';
+import { z } from 'zod';
 import { prisma } from '../db.js';
-import { entityRouter } from './entityRouter.js';
-export default entityRouter(prisma.escrowLedger, { readonlyFields: ['id', 'createdAt'] });
+import { authenticate, requireRole } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { asyncHandler, ApiError, bookingScope, isBookingParticipant } from '../lib/access.js';
+
+const router = Router();
+router.use(authenticate);
+
+function mapOut(e) {
+  return {
+    id: e.id,
+    booking_id: e.bookingId,
+    gross_amount: e.grossAmount,
+    platform_fee: e.platformFee,
+    partner_payout: e.partnerPayout,
+    status: e.status,
+    freeze_reason: e.freezeReason,
+    released_at: e.releasedAt,
+    created_date: e.createdAt,
+  };
+}
+
+// GET /api/escrow — admin: all; partner/consumer: entries on their own bookings
+router.get('/', asyncHandler(async (req, res) => {
+  const where = bookingScope(req.user);
+  if (req.query.status) where.status = String(req.query.status);
+  if (req.query.booking_id) where.bookingId = String(req.query.booking_id);
+  const items = await prisma.escrowLedger.findMany({ where, orderBy: { createdAt: 'desc' } });
+  res.json(items.map(mapOut));
+}));
+
+router.get('/:id', asyncHandler(async (req, res) => {
+  const item = await prisma.escrowLedger.findUnique({
+    where: { id: req.params.id },
+    include: { booking: true },
+  });
+  if (!item) throw new ApiError(404, 'Not found');
+  if (!isBookingParticipant(req.user, item.booking)) throw new ApiError(403, 'Forbidden');
+  res.json(mapOut(item));
+}));
+
+const patchSchema = z.object({
+  status: z.enum(['held', 'released', 'frozen', 'refunded']),
+  freeze_reason: z.string().max(500).nullish(),
+});
+
+// Money-state transitions are admin-only. Escrow rows are created by the server
+// itself during booking creation — there is no client create endpoint.
+router.patch('/:id', requireRole('admin', 'super_admin'), validate(patchSchema), asyncHandler(async (req, res) => {
+  const data = { status: req.body.status };
+  if (req.body.freeze_reason !== undefined) data.freezeReason = req.body.freeze_reason;
+  if (req.body.status === 'released') data.releasedAt = new Date();
+  const item = await prisma.escrowLedger.update({ where: { id: req.params.id }, data });
+  res.json(mapOut(item));
+}));
+
+export default router;

@@ -7,7 +7,7 @@ import { useTranslation } from '@/lib/useTranslation';
 import { getPackages, getAddons } from '@/lib/packageData';
 import { formatMYR, cn } from '@/lib/utils';
 import { safeMotion, variants } from '@/lib/design/motion';
-import { isAreaScaled, BEDROOM_OPTIONS } from '@/lib/bookingEngine';
+import { isAreaScaled } from '@/lib/bookingEngine';
 
 const FAQS = [
   { q: 'What should I do before the team arrives?', a: 'Clear walkways and secure valuables. No need to provide cleaning supplies — we bring everything.' },

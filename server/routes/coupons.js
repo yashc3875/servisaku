@@ -1,9 +1,25 @@
 import { Router } from 'express';
+import { z } from 'zod';
 import { prisma } from '../db.js';
+import { authenticate, requireRole } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
 
 const router = Router();
+router.use(authenticate);
 
-// GET /api/coupons — list / filter (same as generic but also validates)
+const writeSchema = z.object({
+  code: z.string().min(2).max(40).transform((s) => s.toUpperCase()),
+  discount_type: z.enum(['percentage', 'fixed']),
+  discount_value: z.coerce.number().positive(),
+  max_discount_cap: z.coerce.number().positive().nullish(),
+  min_order_amount: z.coerce.number().nonnegative().nullish(),
+  applicable_services: z.union([z.array(z.string()), z.string()]).nullish(),
+  is_active: z.boolean().optional(),
+  valid_until: z.coerce.date().nullish(),
+  max_usage: z.coerce.number().int().positive().nullish(),
+});
+
+// GET /api/coupons — authenticated read (used to validate codes at checkout)
 router.get('/', async (req, res, next) => {
   try {
     const where = {};
@@ -23,21 +39,22 @@ router.get('/:id', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.post('/', async (req, res, next) => {
+// Coupon management is admin-only.
+router.post('/', requireRole('admin', 'super_admin'), validate(writeSchema), async (req, res, next) => {
   try {
     const c = await prisma.coupon.create({ data: mapIn(req.body) });
     res.status(201).json(mapCoupon(c));
   } catch (err) { next(err); }
 });
 
-router.patch('/:id', async (req, res, next) => {
+router.patch('/:id', requireRole('admin', 'super_admin'), validate(writeSchema.partial()), async (req, res, next) => {
   try {
     const c = await prisma.coupon.update({ where: { id: req.params.id }, data: mapIn(req.body) });
     res.json(mapCoupon(c));
   } catch (err) { next(err); }
 });
 
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', requireRole('admin', 'super_admin'), async (req, res, next) => {
   try {
     await prisma.coupon.delete({ where: { id: req.params.id } });
     res.json({ ok: true });
@@ -62,19 +79,23 @@ function mapCoupon(c) {
   };
 }
 
+// Body is already validated/coerced by zod; copy only fields that were sent so
+// partial PATCHes don't clobber existing values.
 function mapIn(body) {
-  return {
-    code: body.code,
-    discountType: body.discount_type,
-    discountValue: Number(body.discount_value),
-    maxDiscountCap: body.max_discount_cap ? Number(body.max_discount_cap) : null,
-    minOrderAmount: body.min_order_amount ? Number(body.min_order_amount) : null,
-    applicableServices: Array.isArray(body.applicable_services)
-      ? body.applicable_services.join(',') : body.applicable_services || null,
-    isActive: body.is_active !== undefined ? Boolean(body.is_active) : true,
-    validUntil: body.valid_until ? new Date(body.valid_until) : null,
-    maxUsage: body.max_usage ? Number(body.max_usage) : null,
-  };
+  const data = {};
+  if (body.code !== undefined) data.code = body.code;
+  if (body.discount_type !== undefined) data.discountType = body.discount_type;
+  if (body.discount_value !== undefined) data.discountValue = body.discount_value;
+  if (body.max_discount_cap !== undefined) data.maxDiscountCap = body.max_discount_cap;
+  if (body.min_order_amount !== undefined) data.minOrderAmount = body.min_order_amount;
+  if (body.applicable_services !== undefined) {
+    data.applicableServices = Array.isArray(body.applicable_services)
+      ? body.applicable_services.join(',') : body.applicable_services || null;
+  }
+  if (body.is_active !== undefined) data.isActive = body.is_active;
+  if (body.valid_until !== undefined) data.validUntil = body.valid_until;
+  if (body.max_usage !== undefined) data.maxUsage = body.max_usage;
+  return data;
 }
 
 export default router;

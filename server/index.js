@@ -1,8 +1,16 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 
 dotenv.config();
+
+// Refuse to boot with a missing/weak signing secret — every auth check depends on it.
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 16) {
+  console.error('FATAL: JWT_SECRET is missing or too short (min 16 chars). Set it in .env');
+  process.exit(1);
+}
 
 import authRouter from './routes/auth.js';
 import bookingsRouter from './routes/bookings.js';
@@ -14,32 +22,52 @@ import refundsRouter from './routes/refunds.js';
 import payoutsRouter from './routes/payouts.js';
 import chatRouter from './routes/chat.js';
 import notificationsRouter from './routes/notifications.js';
+import partnerLocationsRouter from './routes/partnerLocations.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
-app.use(express.json());
+app.use(helmet());
+app.use(cors({
+  origin: (process.env.CORS_ORIGIN || 'http://localhost:5173').split(','),
+  credentials: true,
+}));
+app.use(express.json({ limit: '1mb' }));
 
-// Health check
-app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
+// Global limiter + a tighter one for credential endpoints.
+app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 600, standardHeaders: true, legacyHeaders: false }));
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: true, legacyHeaders: false });
 
-// Routes
-app.use('/api/auth', authRouter);
-app.use('/api/bookings', bookingsRouter);
-app.use('/api/coupons', couponsRouter);
-app.use('/api/users', usersRouter);
-app.use('/api/reviews', reviewsRouter);
-app.use('/api/escrow', escrowRouter);
-app.use('/api/refunds', refundsRouter);
-app.use('/api/payouts', payoutsRouter);
-app.use('/api/chat', chatRouter);
-app.use('/api/notifications', notificationsRouter);
+const api = express.Router();
 
-// Global error handler
+api.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
+
+api.use('/auth', authLimiter, authRouter);
+api.use('/bookings', bookingsRouter);
+api.use('/coupons', couponsRouter);
+api.use('/users', usersRouter);
+api.use('/reviews', reviewsRouter);
+api.use('/escrow', escrowRouter);
+api.use('/refunds', refundsRouter);
+api.use('/payouts', payoutsRouter);
+api.use('/chat', chatRouter);
+api.use('/notifications', notificationsRouter);
+api.use('/partner-locations', partnerLocationsRouter);
+
+// /api stays the canonical mount; /api/v1 is the forward-compatible alias the
+// mobile clients will use (Phase 1 makes v1 canonical).
+app.use('/api', api);
+app.use('/api/v1', api);
+
+// Global error handler — ApiError carries an intentional status; anything else is a 500
+// and the message is not leaked to the client outside development.
 app.use((err, req, res, next) => {
-  console.error(err.message);
-  res.status(err.status || 500).json({ error: err.message || 'Internal server error' });
+  const status = err.status || 500;
+  if (status >= 500) console.error(err);
+  const message = status >= 500 && process.env.NODE_ENV === 'production'
+    ? 'Internal server error'
+    : err.message;
+  res.status(status).json({ error: message });
 });
 
 app.listen(PORT, () => {
