@@ -23,8 +23,8 @@ async function resolveCoupon(prisma, couponCode, subtotal, serviceKey) {
   if (coupon.minOrderAmount != null && subtotal < coupon.minOrderAmount) {
     throw new ApiError(400, `Coupon requires a minimum order of RM${coupon.minOrderAmount}`);
   }
-  if (coupon.applicableServices) {
-    const allowed = coupon.applicableServices.split(',').map((s) => s.trim());
+  if (Array.isArray(coupon.applicableServices) && coupon.applicableServices.length) {
+    const allowed = coupon.applicableServices.map((s) => String(s).trim());
     if (!allowed.includes(serviceKey)) throw new ApiError(400, 'Coupon not valid for this service');
   }
   return coupon;

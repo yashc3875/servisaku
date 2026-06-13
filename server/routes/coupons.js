@@ -70,7 +70,7 @@ function mapCoupon(c) {
     discount_value: c.discountValue,
     max_discount_cap: c.maxDiscountCap,
     min_order_amount: c.minOrderAmount,
-    applicable_services: c.applicableServices ? c.applicableServices.split(',') : [],
+    applicable_services: Array.isArray(c.applicableServices) ? c.applicableServices : [],
     is_active: c.isActive,
     valid_until: c.validUntil,
     usage_count: c.usageCount,
@@ -89,8 +89,12 @@ function mapIn(body) {
   if (body.max_discount_cap !== undefined) data.maxDiscountCap = body.max_discount_cap;
   if (body.min_order_amount !== undefined) data.minOrderAmount = body.min_order_amount;
   if (body.applicable_services !== undefined) {
+    // Json column: store the array directly (null if empty/unset).
     data.applicableServices = Array.isArray(body.applicable_services)
-      ? body.applicable_services.join(',') : body.applicable_services || null;
+      ? body.applicable_services
+      : body.applicable_services
+        ? [body.applicable_services]
+        : null;
   }
   if (body.is_active !== undefined) data.isActive = body.is_active;
   if (body.valid_until !== undefined) data.validUntil = body.valid_until;

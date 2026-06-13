@@ -1,106 +1,136 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// ════════════════════════════════════════════════════════════════════════════
+// TARGET SCHEMA — PostgreSQL (Phase 0→1)
+// This is the prepared replacement for prisma/schema.prisma, applied when the
+// PostgreSQL migration runs (see docs/07-postgres-migration.md).
+//
+// Contents:
+//   §1  Existing models carried over (string-JSON fields upgraded to Json)
+//   §2  Booking extensions for the service abstraction (details Json, BookingItem)
+//   §3  Catalog tables — DB-driven service abstraction (replaces src/lib/catalog/*
+//       and src/lib/packageData.js as source of truth; seeded from them)
+//   Phase 2 models (PartnerProfile, Payment, JobOffer, …) are sketched in
+//   docs/03-target-architecture.md §3 and added when that phase starts.
+// ════════════════════════════════════════════════════════════════════════════
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id               String    @id @default(cuid())
-  email            String    @unique
-  passwordHash     String?
-  fullName         String
-  role             String    @default("consumer") // consumer | partner | admin | super_admin
-  phone            String?
-  city             String?
-  bio              String?
-  avatarUrl        String?
-  partnerVerified  Boolean   @default(false)
-  partnerRating    Float?
-  partnerCategory  String?
-  bankAccount      String?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+// ─── §1 Existing models ──────────────────────────────────────────────────────
 
-  bookingsAsConsumer Booking[] @relation("ConsumerBookings")
-  bookingsAsPartner  Booking[] @relation("PartnerBookings")
+model User {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  passwordHash    String?
+  fullName        String
+  role            String   @default("consumer") // consumer | partner | admin | super_admin
+  phone           String?
+  city            String?
+  bio             String?
+  avatarUrl       String?
+  partnerVerified Boolean  @default(false)
+  partnerRating   Float?
+  partnerCategory String?
+  bankAccount     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  bookingsAsConsumer Booking[]      @relation("ConsumerBookings")
+  bookingsAsPartner  Booking[]      @relation("PartnerBookings")
   reviews            Review[]
   notifications      Notification[]
+
+  @@index([role, partnerVerified])
 }
 
 model Booking {
-  id              String    @id @default(cuid())
-  serviceType     String
-  serviceId       String?
-  status          String    @default("pending") // pending | confirmed | in_progress | completed | cancelled | disputed
-  price           Float
-  date            DateTime
-  timeSlot        String?
-  address         String?
-  city            String?
-  notes           String?
-  couponCode      String?
-  discountAmount  Float     @default(0)
-  paymentMethod   String?
-  paymentStatus   String    @default("pending") // pending | paid | escrowed | refunded | failed
-  consumerId      String
-  partnerId       String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  serviceType    String // display label (legacy)
+  serviceId      String? // legacy column: carries package display name (Phase 1 cleans up)
+  status         String    @default("pending")
+  price          Float
+  date           DateTime
+  timeSlot       String?
+  address        String?
+  city           String?
+  notes          String?
+  couponCode     String?
+  discountAmount Float     @default(0)
+  paymentMethod  String?
+  paymentStatus  String    @default("pending")
+  consumerId     String
+  partnerId      String?
+  // §2 service-abstraction extensions
+  categoryId     String?
+  catalogServiceId String?
+  packageId      String?
+  details        Json? // service-specific answers from workflow params (BHK, unit count, …)
+  scheduledStart DateTime?
+  scheduledEnd   DateTime?
+  lifecycle      Json? // timestamped status transitions
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  consumer     User          @relation("ConsumerBookings", fields: [consumerId], references: [id])
-  partner      User?         @relation("PartnerBookings", fields: [partnerId], references: [id])
-  escrow       EscrowLedger?
-  review       Review?
+  consumer       User            @relation("ConsumerBookings", fields: [consumerId], references: [id])
+  partner        User?           @relation("PartnerBookings", fields: [partnerId], references: [id])
+  category       ServiceCategory? @relation(fields: [categoryId], references: [id])
+  catalogService Service?        @relation(fields: [catalogServiceId], references: [id])
+  items          BookingItem[]
+  escrow         EscrowLedger?
+  review         Review?
   refundRequests RefundRequest[]
-  chatMessages ChatMessage[]
+  chatMessages   ChatMessage[]
+
+  @@index([consumerId, status])
+  @@index([partnerId, status])
+  @@index([date])
 }
 
 model Coupon {
-  id                String    @id @default(cuid())
-  code              String    @unique
-  discountType      String    // percentage | fixed
-  discountValue     Float
-  maxDiscountCap    Float?
-  minOrderAmount    Float?
-  applicableServices String?  // comma-separated service ids, null = all
-  isActive          Boolean   @default(true)
-  validUntil        DateTime?
-  usageCount        Int       @default(0)
-  maxUsage          Int?
-  createdAt         DateTime  @default(now())
+  id                 String    @id @default(cuid())
+  code               String    @unique
+  discountType       String
+  discountValue      Float
+  maxDiscountCap     Float?
+  minOrderAmount     Float?
+  applicableServices Json? // was comma-separated string on SQLite
+  isActive           Boolean   @default(true)
+  validUntil         DateTime?
+  usageCount         Int       @default(0)
+  maxUsage           Int?
+  createdAt          DateTime  @default(now())
 }
 
 model Review {
-  id          String   @id @default(cuid())
-  bookingId   String   @unique
-  userId      String
-  rating      Float
-  comment     String?
-  photos      String?  // JSON array of URLs
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  bookingId String   @unique
+  userId    String
+  rating    Float
+  comment   String?
+  photos    Json? // was JSON-in-string on SQLite
+  createdAt DateTime @default(now())
 
-  booking  Booking @relation(fields: [bookingId], references: [id])
-  user     User    @relation(fields: [userId], references: [id])
+  booking Booking @relation(fields: [bookingId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
 }
 
 model EscrowLedger {
-  id              String   @id @default(cuid())
-  bookingId       String   @unique
-  grossAmount     Float
-  platformFee     Float
-  partnerPayout   Float
-  status          String   @default("held") // held | released | frozen | refunded
-  freezeReason    String?
-  releasedAt      DateTime?
-  createdAt       DateTime @default(now())
+  id            String    @id @default(cuid())
+  bookingId     String    @unique
+  grossAmount   Float
+  platformFee   Float
+  partnerPayout Float
+  status        String    @default("held")
+  freezeReason  String?
+  releasedAt    DateTime?
+  createdAt     DateTime  @default(now())
 
-  booking  Booking @relation(fields: [bookingId], references: [id])
+  booking Booking @relation(fields: [bookingId], references: [id])
 }
 
 model RefundRequest {
@@ -109,44 +139,48 @@ model RefundRequest {
   consumerId     String
   originalAmount Float
   refundAmount   Float
-  refundType     String   // full | partial
+  refundType     String
   reason         String
-  status         String   @default("pending") // pending | approved | rejected | under_review
+  status         String   @default("pending")
   adminNote      String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  booking  Booking @relation(fields: [bookingId], references: [id])
+  booking Booking @relation(fields: [bookingId], references: [id])
 }
 
 model PayoutRecord {
-  id              String   @id @default(cuid())
-  partnerId       String
-  partnerName     String
-  grossEarning    Float
+  id               String    @id @default(cuid())
+  partnerId        String
+  partnerName      String
+  grossEarning     Float
   commissionAmount Float
-  netPayout       Float
-  payoutMethod    String   @default("Bank Transfer")
-  status          String   @default("pending") // pending | scheduled | completed | failed
-  failureReason   String?
-  scheduledDate   DateTime?
-  createdAt       DateTime @default(now())
+  netPayout        Float
+  payoutMethod     String    @default("Bank Transfer")
+  status           String    @default("pending")
+  failureReason    String?
+  scheduledDate    DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@index([partnerId])
 }
 
 model ChatMessage {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   bookingId  String
   senderId   String
   senderName String
   senderRole String?
   message    String
-  type       String   @default("text") // text | image | system
+  type       String    @default("text")
   fileUrl    String?
-  isRead     Boolean  @default(false)
+  isRead     Boolean   @default(false)
   readAt     DateTime?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime  @default(now())
 
-  booking  Booking @relation(fields: [bookingId], references: [id])
+  booking Booking @relation(fields: [bookingId], references: [id])
+
+  @@index([bookingId, createdAt])
 }
 
 model PartnerLocation {
@@ -171,5 +205,144 @@ model Notification {
   link      String?
   createdAt DateTime @default(now())
 
-  user  User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, isRead])
+}
+
+// ─── §2 Booking line items ───────────────────────────────────────────────────
+
+model BookingItem {
+  id        String  @id @default(cuid())
+  bookingId String
+  kind      String // package | addon | fee | discount
+  refId     String? // ServicePackage.id / ServiceAddon.id when applicable
+  label     String
+  labelMy   String?
+  qty       Int     @default(1)
+  unitPrice Float
+  total     Float
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+}
+
+// ─── §3 Catalog (DB-driven service abstraction — see docs/04) ────────────────
+
+model ServiceCategory {
+  id                 String   @id @default(cuid())
+  slug               String   @unique
+  name               String
+  nameMy             String
+  tagline            String?
+  taglineMy          String?
+  iconKey            String   @default("Home")
+  accent             String   @default("emerald")
+  heroImage          String?
+  headerImage        String?
+  sortOrder          Int      @default(0)
+  isActive           Boolean  @default(true)
+  emergencySupported Boolean  @default(false)
+  recurringSupported Boolean  @default(false)
+  priceFrom          Float    @default(0)
+  workflowConfig     Json? // booking steps + job lifecycle + completion requirements
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  subcategories Subcategory[]
+  services      Service[]
+  bookings      Booking[]
+}
+
+model Subcategory {
+  id         String @id @default(cuid())
+  categoryId String
+  slug       String
+  name       String
+  nameMy     String
+  iconKey    String @default("Home")
+  sortOrder  Int    @default(0)
+
+  category ServiceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, slug])
+}
+
+model Service {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  categoryId    String
+  subcategoryId String?
+  name          String
+  nameMy        String
+  description   String   @default("")
+  descriptionMy String   @default("")
+  basePrice     Float
+  pricingModel  String   @default("flat") // flat | per_unit | area_based | hourly | quote
+  pricingConfig Json? // model-specific params (tier table, unit price, hourly rate…)
+  durationMin   Int      @default(60)
+  durationMax   Int      @default(120)
+  image         String?
+  attributes    Json? // propertyTypes, bookingModes, cities, partnerSkills, safetyChecks
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  category ServiceCategory  @relation(fields: [categoryId], references: [id])
+  packages ServicePackage[]
+  addons   ServiceAddon[]
+  bookings Booking[]
+
+  @@index([categoryId, isActive])
+}
+
+model ServicePackage {
+  id           String  @id @default(cuid())
+  serviceId    String
+  tier         String // essential | signature | premium | custom slug
+  name         String
+  nameMy       String
+  description  String  @default("")
+  descriptionMy String @default("")
+  price        Float? // absolute price (packageData style) …
+  multiplier   Float? // … or multiplier on Service.basePrice (catalog style); one required
+  inclusions   Json    @default("[]")
+  inclusionsMy Json    @default("[]")
+  exclusions   Json?
+  warrantyDays Int?
+  isPopular    Boolean @default(false)
+  sortOrder    Int     @default(0)
+
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([serviceId, tier])
+}
+
+model ServiceAddon {
+  id          String @id @default(cuid())
+  serviceId   String
+  slug        String
+  name        String
+  nameMy      String
+  price       Float
+  durationMin Int    @default(0)
+  isActive    Boolean @default(true)
+
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([serviceId, slug])
+}
+
+model PriceRule {
+  id         String    @id @default(cuid())
+  scope      String // category | service | city | global
+  scopeId    String?
+  type       String // surge | city_adjust | promo_window
+  config     Json
+  isActive   Boolean   @default(true)
+  validFrom  DateTime?
+  validUntil DateTime?
+  createdAt  DateTime  @default(now())
 }

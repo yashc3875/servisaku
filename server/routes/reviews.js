@@ -16,7 +16,7 @@ async function mapManyOut(items) {
     user_email: emails[r.userId],
     rating: r.rating,
     comment: r.comment,
-    photos: r.photos ? JSON.parse(r.photos) : [],
+    photos: Array.isArray(r.photos) ? r.photos : [],
     created_date: r.createdAt,
   }));
 }
@@ -61,7 +61,7 @@ router.post('/', authenticate, validate(createSchema), asyncHandler(async (req, 
       userId: req.user.id,
       rating: req.body.rating,
       comment: req.body.comment ?? null,
-      photos: req.body.photos ? JSON.stringify(req.body.photos) : null,
+      photos: req.body.photos ?? null,
     },
   });
 
