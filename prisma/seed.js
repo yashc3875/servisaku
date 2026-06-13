@@ -1,11 +1,15 @@
 import pkg from '@prisma/client';
 const { PrismaClient } = pkg;
 import bcrypt from 'bcryptjs';
+import { seedCatalog } from './catalogSeed.js';
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('🌱 Seeding database...');
+
+  // --- Catalog (DB-driven service abstraction) ---
+  await seedCatalog(prisma);
 
   // --- Users ---
   const adminPw = await bcrypt.hash('admin123', 10);
