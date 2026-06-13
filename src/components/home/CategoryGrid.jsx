@@ -1,16 +1,80 @@
-import React from 'react';
-import { Section, SeeAllLink } from '@/components/primitives/Section';
-import { Sparkles, Wind, Droplets, Zap, Paintbrush, Bug, Star } from 'lucide-react';
+import { Sparkles, Wind, Droplets, Zap, Paintbrush, Bug, Star, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/lib/useTranslation';
 
-const MOCK_CATEGORIES = [
-  { id: 1, slug: 'home-cleaning', titleKey: 'Home Cleaning', price: '35', rating: '4.8', reviews: '1.2K', img: '/img/cleaning-new.jpg', Icon: Sparkles, color: 'text-orange-500', bg: 'bg-orange-500' },
-  { id: 2, slug: 'ac-servicing', titleKey: 'AC Service & Repair', price: '60', rating: '4.9', reviews: '980', img: '/img/ac-new.jpg', Icon: Wind, color: 'text-blue-500', bg: 'bg-blue-500' },
-  { id: 3, slug: 'plumbing', titleKey: 'Plumbing', price: '50', rating: '4.7', reviews: '850', img: '/img/plumbing-new.jpg', Icon: Droplets, color: 'text-green-500', bg: 'bg-green-500' },
-  { id: 4, slug: 'electrical', titleKey: 'Electrical Services', price: '60', rating: '4.8', reviews: '760', img: '/img/electrical-new.jpg', Icon: Zap, color: 'text-yellow-500', bg: 'bg-yellow-500' },
-  { id: 5, slug: 'painting', titleKey: 'Painting', price: '150', rating: '4.7', reviews: '620', img: '/img/painting-new.jpg', Icon: Paintbrush, color: 'text-purple-500', bg: 'bg-purple-500' },
-  { id: 6, slug: 'pest-control', titleKey: 'Pest Control', price: '80', rating: '4.8', reviews: '540', img: '/img/pest-new.jpg', Icon: Bug, color: 'text-red-500', bg: 'bg-red-500' }
+const categories = [
+  {
+    id: 1,
+    slug: 'home-cleaning',
+    titleKey: 'Home Cleaning',
+    price: '35',
+    rating: '4.8',
+    reviews: '12K',
+    img: '/img/cleaning-new.jpg',
+    Icon: Sparkles,
+    tone: 'bg-orange-50 text-brand border-orange-100',
+    tag: 'Daily, deep, move-in',
+  },
+  {
+    id: 2,
+    slug: 'ac-servicing',
+    titleKey: 'AC Service & Repair',
+    price: '60',
+    rating: '4.9',
+    reviews: '9.8K',
+    img: '/img/ac-new.jpg',
+    Icon: Wind,
+    tone: 'bg-blue-50 text-blue-600 border-blue-100',
+    tag: 'Service, repair, gas top-up',
+  },
+  {
+    id: 3,
+    slug: 'plumbing',
+    titleKey: 'Plumbing',
+    price: '50',
+    rating: '4.7',
+    reviews: '8.5K',
+    img: '/img/plumbing-new.jpg',
+    Icon: Droplets,
+    tone: 'bg-emerald-50 text-success border-emerald-100',
+    tag: 'Leaks, taps, bathroom',
+  },
+  {
+    id: 4,
+    slug: 'electrical',
+    titleKey: 'Electrical Services',
+    price: '79',
+    rating: '4.8',
+    reviews: '7.6K',
+    img: '/img/electrical-new.jpg',
+    Icon: Zap,
+    tone: 'bg-amber-50 text-warning border-amber-100',
+    tag: 'Sockets, fans, wiring',
+  },
+  {
+    id: 5,
+    slug: 'painting',
+    titleKey: 'Painting',
+    price: '199',
+    rating: '4.7',
+    reviews: '6.2K',
+    img: '/img/painting-new.jpg',
+    Icon: Paintbrush,
+    tone: 'bg-violet-50 text-violet-600 border-violet-100',
+    tag: 'Room, condo, exterior',
+  },
+  {
+    id: 6,
+    slug: 'pest-control',
+    titleKey: 'Pest Control',
+    price: '99',
+    rating: '4.8',
+    reviews: '5.4K',
+    img: '/img/pest-new.jpg',
+    Icon: Bug,
+    tone: 'bg-red-50 text-danger border-red-100',
+    tag: 'Termites, roaches, ants',
+  },
 ];
 
 export default function CategoryGrid() {
@@ -18,38 +82,60 @@ export default function CategoryGrid() {
   const { t } = useTranslation();
 
   return (
-    <Section 
-      title={t('Popular Services')}
-      action={<SeeAllLink to="/explore" label={t('View All Services')} />}
-      className="px-0"
-    >
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-        {MOCK_CATEGORIES.map((cat) => (
-          <div 
-            key={cat.id} 
+    <section>
+      <div className="mb-5 flex items-end justify-between gap-4">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand">{t('Book by category')}</p>
+          <h2 className="mt-1 font-display text-2xl font-bold text-ink md:text-3xl">{t('Services for Malaysian homes')}</h2>
+        </div>
+        <button
+          type="button"
+          onClick={() => navigate('/explore')}
+          className="hidden text-sm font-bold text-brand transition-colors hover:text-brand-ink sm:block"
+        >
+          {t('View All Services')}
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+        {categories.map((cat) => (
+          <button
+            key={cat.id}
+            type="button"
             onClick={() => navigate(`/service/${cat.slug}`)}
-            className="bg-white rounded-2xl md:rounded-3xl shadow-sm border border-hairline/20 overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group flex flex-col h-full"
+            className="group overflow-hidden rounded-lg border border-hairline/70 bg-white text-left shadow-e1 transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-e3"
           >
-            <div className="relative h-48 md:h-56 overflow-hidden">
-              <img src={cat.img} alt={t(cat.titleKey)} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-            </div>
-            <div className="p-5 md:p-6 flex-1 flex flex-col relative pt-10 md:pt-12">
-              <div className={`absolute -top-7 md:-top-8 left-5 md:left-6 w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center ${cat.bg} border-4 border-white shadow-md`}>
-                <cat.Icon className="h-7 w-7 md:h-8 md:w-8 text-white" />
-              </div>
-              <h3 className="font-extrabold text-ink text-lg md:text-xl leading-tight mb-2 line-clamp-2">{t(cat.titleKey)}</h3>
-              <div className="mt-auto flex items-center justify-between text-xs md:text-sm font-semibold text-ink-secondary">
-                <span>{t('Starting from')} RM{cat.price}</span>
-                <div className="flex items-center gap-1.5">
-                  <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
-                  <span className="text-ink font-bold">{cat.rating}</span>
-                  <span className="text-ink-tertiary">({cat.reviews})</span>
-                </div>
+            <div className="relative aspect-[4/3] overflow-hidden bg-raised">
+              <img
+                src={cat.img}
+                alt={t(cat.titleKey)}
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute left-2 top-2 rounded-full bg-white/95 px-2 py-1 text-[10px] font-extrabold text-ink shadow-e1">
+                RM{cat.price}+
               </div>
             </div>
-          </div>
+
+            <div className="p-3">
+              <div className={`mb-3 flex size-9 items-center justify-center rounded-lg border ${cat.tone}`}>
+                <cat.Icon className="h-4 w-4" />
+              </div>
+              <h3 className="min-h-10 text-sm font-extrabold leading-tight text-ink">{t(cat.titleKey)}</h3>
+              <p className="mt-1 line-clamp-1 text-[11px] font-semibold text-ink-tertiary">{t(cat.tag)}</p>
+              <div className="mt-3 flex items-center justify-between gap-2 text-[11px] font-bold text-ink-secondary">
+                <span className="inline-flex items-center gap-1">
+                  <Star className="size-3 fill-amber-400 text-amber-400" />
+                  {cat.rating}
+                </span>
+                <span className="inline-flex items-center gap-1 text-success">
+                  <ShieldCheck className="size-3" />
+                  {cat.reviews}
+                </span>
+              </div>
+            </div>
+          </button>
         ))}
       </div>
-    </Section>
+    </section>
   );
 }

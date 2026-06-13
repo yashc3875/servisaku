@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Search, ArrowRight, LayoutGrid, List } from 'lucide-react';
+import { Search, ArrowRight, LayoutGrid, List, MapPin, ShieldCheck, SlidersHorizontal, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { SERVICES_DISPLAY } from '@/lib/services';
 import { cn } from '@/lib/utils';
@@ -8,14 +8,24 @@ import { Chip } from '@/components/primitives/Chip';
 import { variants, safeMotion } from '@/lib/design/motion';
 import { useTranslation } from '@/lib/useTranslation';
 
-const CATEGORIES = ['All', 'Cleaning', 'AC', 'Plumbing', 'Electrical', 'Painting', 'Pest Control'];
+const CATEGORIES = [
+  { label: 'All', match: 'all' },
+  { label: 'Cleaning', match: 'cleaning' },
+  { label: 'AC', match: 'ac' },
+  { label: 'Plumbing', match: 'plumbing' },
+  { label: 'Electrical', match: 'electrical' },
+  { label: 'Painting', match: 'painting' },
+  { label: 'Pest Control', match: 'pest' },
+];
 
 export default function Explore() {
   const { t, tField, lang } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialQuery = searchParams.get('q') || '';
+  const initialLocation = searchParams.get('loc') || 'Kuala Lumpur';
   const [query, setQuery] = useState(initialQuery);
-  const [activeCategory, setActiveCategory] = useState('All');
+  const [location, setLocation] = useState(initialLocation);
+  const [activeCategory, setActiveCategory] = useState('all');
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'grid'
 
   useEffect(() => {
@@ -23,24 +33,37 @@ export default function Explore() {
     if (q !== null) {
       setQuery(q);
     }
+    const loc = searchParams.get('loc');
+    if (loc !== null) {
+      setLocation(loc);
+    }
   }, [searchParams]);
 
   // Update URL when query changes (optional, but good UX)
   const handleQueryChange = (e) => {
     const newQuery = e.target.value;
     setQuery(newQuery);
-    if (newQuery) {
-      setSearchParams({ q: newQuery });
-    } else {
-      setSearchParams({});
-    }
+    const params = {};
+    if (newQuery) params.q = newQuery;
+    if (location) params.loc = location;
+    setSearchParams(params);
+  };
+
+  const handleLocationChange = (e) => {
+    const nextLocation = e.target.value;
+    setLocation(nextLocation);
+    const params = {};
+    if (query) params.q = query;
+    if (nextLocation) params.loc = nextLocation;
+    setSearchParams(params);
   };
 
   const filtered = SERVICES_DISPLAY.filter(s => {
-    const matchesQuery = s.name.toLowerCase().includes(query.toLowerCase());
+    const searchable = `${s.name} ${s.description || ''} ${s.nameMy || ''} ${s.descriptionMy || ''}`.toLowerCase();
+    const matchesQuery = searchable.includes(query.toLowerCase());
     const matchesCategory =
-      activeCategory === 'All' ||
-      s.name.toLowerCase().includes(activeCategory.toLowerCase());
+      activeCategory === 'all' ||
+      searchable.includes(activeCategory);
     return matchesQuery && matchesCategory;
   });
 
@@ -48,15 +71,18 @@ export default function Explore() {
   const staggerItem = safeMotion(variants.staggerItem);
 
   return (
-    <div className="font-inter pb-6 bg-bg min-h-screen">
+    <div className="font-inter pb-6 bg-[#fbfaf7] min-h-screen">
       {/* Sticky header */}
-      <div className="sticky top-0 z-20 bg-bg/90 backdrop-blur-xl px-5 lg:px-8 pt-12 lg:pt-4 pb-4 border-b border-hairline/10">
-        <div className="flex items-center justify-between mb-3">
-          <h1 className="text-xl font-bold text-ink">{t('Explore')}</h1>
+      <div className="sticky top-0 z-20 border-b border-hairline/60 bg-[#fbfaf7]/90 px-5 pb-4 pt-7 backdrop-blur-xl lg:px-8 lg:pt-5">
+        <div className="mb-4 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand">{t('Explore')}</p>
+            <h1 className="mt-1 font-display text-2xl font-bold text-ink">{t('Book a home service')}</h1>
+          </div>
           <button
             type="button"
             onClick={() => setViewMode(v => (v === 'list' ? 'grid' : 'list'))}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface border border-hairline/10 text-ink-secondary hover:bg-raised transition-colors"
+            className="flex h-10 w-10 items-center justify-center rounded-lg border border-hairline/60 bg-white text-ink-secondary shadow-e1 transition-colors hover:bg-raised"
             aria-label={viewMode === 'list' ? 'Switch to grid view' : 'Switch to list view'}
           >
             {viewMode === 'list' ? (
@@ -67,28 +93,44 @@ export default function Explore() {
           </button>
         </div>
 
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-secondary" />
-          <input
-            type="text"
-            placeholder={lang === 'ms' ? 'Cari perkhidmatan...' : 'Search services...'}
-            value={query}
-            onChange={handleQueryChange}
-            className="w-full bg-surface border border-hairline/10 rounded-2xl pl-10 pr-4 py-3 text-sm text-ink outline-none shadow-e1 focus:ring-2 ring-brand/20"
-          />
+        <div className="grid gap-2 lg:grid-cols-[1fr_280px_auto]">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-brand" />
+            <input
+              type="text"
+              placeholder={lang === 'ms' ? 'Cari pembersihan, AC, paip...' : 'Search cleaning, AC, plumber...'}
+              value={query}
+              onChange={handleQueryChange}
+              className="w-full rounded-lg border border-hairline/60 bg-white py-3.5 pl-10 pr-4 text-sm font-semibold text-ink shadow-e1 outline-none ring-brand/20 placeholder:text-ink-tertiary focus:ring-2"
+            />
+          </div>
+          <div className="relative">
+            <MapPin className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-success" />
+            <input
+              type="text"
+              value={location}
+              onChange={handleLocationChange}
+              className="w-full rounded-lg border border-hairline/60 bg-white py-3.5 pl-10 pr-4 text-sm font-semibold text-ink shadow-e1 outline-none ring-brand/20 placeholder:text-ink-tertiary focus:ring-2"
+              placeholder="Kuala Lumpur"
+            />
+          </div>
+          <button className="hidden h-full items-center justify-center gap-2 rounded-lg border border-hairline/60 bg-white px-4 text-sm font-bold text-ink-secondary shadow-e1 lg:flex">
+            <SlidersHorizontal className="h-4 w-4" />
+            {t('Filters')}
+          </button>
         </div>
 
         {/* Category filter chips */}
         <div className="flex gap-2 overflow-x-auto scrollbar-none -mx-5 px-5 mt-3">
           {CATEGORIES.map(cat => (
             <Chip
-              key={cat}
-              tone={activeCategory === cat ? 'brand' : 'neutral'}
-              selected={activeCategory === cat}
-              onClick={() => setActiveCategory(cat)}
+              key={cat.match}
+              tone={activeCategory === cat.match ? 'brand' : 'neutral'}
+              selected={activeCategory === cat.match}
+              onClick={() => setActiveCategory(cat.match)}
               className="shrink-0"
             >
-              {cat}
+              {t(cat.label)}
             </Chip>
           ))}
         </div>
@@ -111,9 +153,9 @@ export default function Explore() {
                 <motion.div key={s.id} variants={staggerItem} whileHover={variants.pressable.whileHover} whileTap={variants.pressable.whileTap}>
                   <Link
                     to={`/service/${s.id}`}
-                    className="flex items-center gap-5 bg-surface rounded-3xl border border-hairline/10 p-5 shadow-e1 hover:shadow-e2 transition-all group"
+                    className="group flex items-center gap-4 rounded-lg border border-hairline/70 bg-white p-4 shadow-e1 transition-all hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-e3"
                   >
-                    <div className="relative w-28 h-28 rounded-2xl overflow-hidden shrink-0">
+                    <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg sm:h-28 sm:w-28">
                       <img
                         src={s.image}
                         alt={s.name}
@@ -122,12 +164,7 @@ export default function Explore() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <div
-                          className={cn(
-                            'w-8 h-8 rounded-lg flex items-center justify-center',
-                            s.color
-                          )}
-                        >
+                        <div className={cn('flex h-8 w-8 items-center justify-center rounded-lg', s.color)}>
                           <Icon className="h-4 w-4" />
                         </div>
                         <h3 className="font-bold text-base text-ink">{tField(s, 'name')}</h3>
@@ -137,9 +174,13 @@ export default function Explore() {
                       </p>
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-bold text-brand">{s.price}</span>
-                        <span className="text-xs text-ink-tertiary bg-raised px-2.5 py-1 rounded-full">
-                          {s.duration}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="hidden items-center gap-1 text-xs font-bold text-success sm:inline-flex">
+                            <ShieldCheck className="h-3.5 w-3.5" />
+                            {t('Verified')}
+                          </span>
+                          <span className="rounded-full bg-raised px-2.5 py-1 text-xs text-ink-tertiary">{s.duration}</span>
+                        </div>
                       </div>
                     </div>
                     <ArrowRight className="h-5 w-5 text-ink-secondary group-hover:text-brand transition-colors shrink-0 ml-2" />
@@ -163,7 +204,7 @@ export default function Explore() {
                 <motion.div key={s.id} variants={staggerItem} whileHover={variants.pressable.whileHover} whileTap={variants.pressable.whileTap} className="h-full">
                   <Link
                     to={`/service/${s.id}`}
-                    className="flex flex-col h-full bg-surface rounded-3xl border border-hairline/10 overflow-hidden shadow-e1 hover:shadow-e2 hover:border-brand/30 transition-all group"
+                    className="group flex h-full flex-col overflow-hidden rounded-lg border border-hairline/70 bg-white shadow-e1 transition-all hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-e3"
                   >
                     {s.image ? (
                       <div className="w-full aspect-[4/3] bg-raised overflow-hidden relative">
@@ -174,10 +215,16 @@ export default function Explore() {
                         <Icon className="h-10 w-10 opacity-50" />
                       </div>
                     )}
-                    <div className="p-5 flex flex-col items-start gap-1.5 flex-1">
+                    <div className="p-4 flex flex-col items-start gap-1.5 flex-1">
                       <h3 className="font-bold text-base text-ink group-hover:text-brand transition-colors line-clamp-2">{tField(s, 'name')}</h3>
                       <p className="text-xs text-ink-secondary mb-1 line-clamp-1">{tField(s, 'description')}</p>
-                      <span className="text-sm font-bold text-brand mt-auto pt-2">{s.price}</span>
+                      <div className="mt-auto flex w-full items-center justify-between pt-3">
+                        <span className="text-sm font-bold text-brand">{s.price}</span>
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-ink-secondary">
+                          <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                          4.8
+                        </span>
+                      </div>
                     </div>
                   </Link>
                 </motion.div>

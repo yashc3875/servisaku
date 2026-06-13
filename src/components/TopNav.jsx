@@ -1,5 +1,5 @@
-import { Link, useLocation } from 'react-router-dom';
-import { Hexagon, MapPin, ShoppingCart, ChevronDown, User, LogOut, Globe } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { MapPin, ShoppingCart, ChevronDown, LogOut, Globe, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { servisaku } from '@/api/servisakuClient';
 import { useState, useEffect } from 'react';
@@ -9,7 +9,6 @@ import { useLanguage } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/useTranslation';
 
 export default function TopNav() {
-  const { pathname } = useLocation();
   const { user } = useAuth();
   const { lang, setLang } = useLanguage();
   const { t } = useTranslation();
@@ -29,7 +28,7 @@ export default function TopNav() {
     <header 
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-200 border-b",
-        scrolled ? "bg-surface/95 backdrop-blur-md border-hairline/20 shadow-sm py-3" : "bg-surface border-transparent py-4"
+        scrolled ? "bg-white/95 backdrop-blur-md border-hairline/60 shadow-sm py-3" : "bg-white/95 border-transparent py-4"
       )}
     >
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
@@ -73,7 +72,7 @@ export default function TopNav() {
           {/* Language Toggle — always visible */}
           <button
             onClick={toggleLang}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-hairline/30 hover:bg-raised transition-colors text-ink-secondary hover:text-ink flex-shrink-0"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-hairline/60 bg-white hover:bg-raised transition-colors text-ink-secondary hover:text-ink flex-shrink-0"
             aria-label="Switch language"
           >
             <Globe className="h-4 w-4" />
@@ -81,10 +80,15 @@ export default function TopNav() {
           </button>
 
           <div className="hidden lg:flex items-center gap-4 xl:gap-6">
-            <div className="hidden xl:flex items-center gap-1.5 text-ink-secondary hover:text-ink cursor-pointer transition-colors whitespace-nowrap">
-              <MapPin className="h-4 w-4 text-brand" />
+            <Link to="/explore?loc=Kuala%20Lumpur" className="hidden xl:flex items-center gap-1.5 rounded-lg border border-hairline/60 bg-white px-3 py-2 text-ink-secondary hover:text-ink cursor-pointer transition-colors whitespace-nowrap">
+              <MapPin className="h-4 w-4 text-success" />
               <span className="text-sm font-semibold">Kuala Lumpur</span>
-            </div>
+            </Link>
+
+            <Link to="/partner/onboarding" className="hidden 2xl:flex items-center gap-1.5 rounded-lg bg-success-tint px-3 py-2 text-sm font-bold text-success whitespace-nowrap">
+              <ShieldCheck className="h-4 w-4" />
+              {t('Become a Pro')}
+            </Link>
 
             <Link to="/cart" className="relative text-ink-secondary hover:text-ink transition-colors flex-shrink-0">
               <ShoppingCart className="h-5 w-5" />
@@ -108,10 +112,10 @@ export default function TopNav() {
                 </div>
               ) : (
                 <>
-                  <Button variant="outline" className="border-hairline/20 hover:bg-raised text-sm font-bold rounded-xl px-4 xl:px-5 h-10 whitespace-nowrap" onClick={() => servisaku.auth.redirectToLogin()}>
+                  <Button variant="outline" className="border-hairline/60 bg-white hover:bg-raised text-sm font-bold rounded-lg px-4 xl:px-5 h-10 whitespace-nowrap" onClick={() => servisaku.auth.redirectToLogin()}>
                     {t('Log In')}
                   </Button>
-                  <Button className="bg-brand text-white hover:bg-brand/90 text-sm font-bold rounded-xl px-4 xl:px-5 h-10 shadow-sm whitespace-nowrap" onClick={() => servisaku.auth.redirectToLogin()}>
+                  <Button className="bg-brand text-white hover:bg-brand/90 text-sm font-bold rounded-lg px-4 xl:px-5 h-10 shadow-sm whitespace-nowrap" onClick={() => servisaku.auth.redirectToLogin()}>
                     {t('Sign Up')}
                   </Button>
                 </>

@@ -1,201 +1,242 @@
-import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ShieldCheck, CircleDollarSign, Lock, ThumbsUp, MapPin, Star, Gift, ArrowRight, Tag, Heart, CheckCircle2, Users } from 'lucide-react';
+import {
+  ArrowRight,
+  BadgeCheck,
+  Bell,
+  CalendarCheck,
+  Clock3,
+  CreditCard,
+  Heart,
+  MapPin,
+  ShieldCheck,
+  Sparkles,
+  TicketPercent,
+  WalletCards,
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { safeMotion, variants } from '@/lib/design/motion';
 import { HeroSearch } from '@/components/home/HeroSearch';
 import CategoryGrid from '@/components/home/CategoryGrid';
 import { TrustStrip } from '@/components/home/TrustStrip';
-import { useAuth } from '@/lib/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/lib/useTranslation';
 
-export default function Home() {
-  const { user } = useAuth();
-  const { t } = useTranslation();
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+const serviceBundles = [
+  {
+    title: 'Move-in Deep Clean',
+    description: 'Apartment cleaning, bathroom detailing, kitchen degreasing',
+    price: 'RM169',
+    image: '/img/cleaning-card.jpg',
+    badge: 'Most booked in KL',
+  },
+  {
+    title: 'AC Care Pack',
+    description: 'Jet wash, gas check, drainage flush, performance test',
+    price: 'RM89',
+    image: '/img/ac-card.jpg',
+    badge: 'Same-day slots',
+  },
+  {
+    title: 'Condo Quick Fix',
+    description: 'Leaks, sockets, small repairs, inspection visit',
+    price: 'RM69',
+    image: '/img/plumbing-card.jpg',
+    badge: 'Best for rentals',
+  },
+];
 
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 300);
-    return () => clearTimeout(timer);
-  }, []);
+const cityChips = ['Kuala Lumpur', 'Petaling Jaya', 'Subang Jaya', 'Shah Alam', 'Cheras'];
+
+const bookingSteps = [
+  { icon: Sparkles, label: 'Pick a service', sub: 'Curated packages' },
+  { icon: CalendarCheck, label: 'Choose time', sub: 'Today or later' },
+  { icon: BadgeCheck, label: 'Meet your pro', sub: 'Verified partner' },
+  { icon: WalletCards, label: 'Pay safely', sub: 'Card, FPX, e-wallet' },
+];
+
+export default function Home() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
 
   return (
     <motion.div
-      className="min-h-screen font-inter bg-white"
+      className="min-h-screen bg-[#fbfaf7] font-inter text-ink"
       {...safeMotion(variants.fadeUp)}
     >
-      {/* ── Hero Section ─────────────────────────── */}
-      <section className="relative w-full bg-gradient-to-b from-[#FFF7F2] to-white pt-12 pb-20 border-b border-hairline/20">
-        
-        <div className="max-w-7xl mx-auto px-6 relative z-10 flex flex-col lg:flex-row items-center justify-between gap-12">
-          
-          {/* Left: Text & Search */}
-          <div className="flex-1 w-full flex flex-col text-left pt-10">
-            
-            <div className="inline-flex items-center gap-2 bg-orange-50 text-orange-600 px-3 py-1.5 rounded-full text-xs font-bold mb-8 w-max">
-              <Heart className="size-4 fill-orange-600 text-orange-600" />
-              {t("Malaysia's #1 Home Services Platform")}
+      <section className="relative overflow-hidden bg-[#f8f1e9] border-b border-hairline/50">
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#fbfaf7] to-transparent" />
+
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-5 pb-10 pt-8 md:px-8 lg:grid-cols-[1.02fr_0.98fr] lg:pb-14 lg:pt-12">
+          <div className="relative z-10 flex flex-col justify-center">
+            <div className="mb-5 flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/75 px-3 py-1.5 text-xs font-bold text-ink shadow-e1">
+                <Heart className="size-3.5 fill-brand text-brand" />
+                {t('Malaysia-ready home services')}
+              </span>
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/75 px-3 py-1.5 text-xs font-bold text-ink-secondary shadow-e1">
+                <MapPin className="size-3.5 text-success" />
+                Klang Valley
+              </span>
             </div>
 
-            <h2 className="text-[48px] lg:text-[56px] font-extrabold text-ink leading-[1.1] tracking-tight mb-6 max-w-[550px]">
-              {t('Home services')}<br/>{t('made easier with')}<br/><span className="text-brand">ServisAku</span>.
-            </h2>
-            
-            <p className="text-lg text-ink-secondary mb-12 max-w-[450px] leading-relaxed font-medium">
-              {t('Book trusted professionals for all your home service needs. Fast, easy & secure.')}
+            <h1 className="max-w-3xl font-display text-[40px] font-bold leading-[1.05] text-ink md:text-[56px] lg:text-[64px]">
+              {t('Book trusted help for every Malaysian home')}
+            </h1>
+            <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-ink-secondary md:text-lg">
+              {t('ServisAku brings verified cleaners, AC technicians, plumbers, electricians, painters, and pest experts to your doorstep with upfront RM pricing.')}
             </p>
 
-            <HeroSearch />
+            <div className="mt-8">
+              <HeroSearch />
+            </div>
 
-            {/* Trust Badges under Search (Horizontal Layout) */}
-            <div className="flex flex-wrap items-center gap-6 mt-10">
-              {[
-                { icon: ShieldCheck, label: t('Verified Professionals'), sub: t('Background Checked'), color: 'text-green-600' },
-                { icon: Tag, label: t('Transparent Pricing'), sub: t('No Hidden Charges'), color: 'text-green-600' },
-                { icon: Lock, label: t('Secure Payments'), sub: t('100% Protection'), color: 'text-amber-500' },
-                { icon: ThumbsUp, label: t('Satisfaction Guarantee'), sub: t("We're Here for You"), color: 'text-amber-500' }
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className={`${item.color}`}>
-                    <item.icon className="size-6 stroke-[1.5]" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-xs font-bold text-ink leading-tight">{item.label}</span>
-                    <span className="text-[10px] font-medium text-ink-secondary leading-tight">{item.sub}</span>
-                  </div>
-                </div>
+            <div className="mt-5 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+              {cityChips.map((city) => (
+                <button
+                  key={city}
+                  type="button"
+                  onClick={() => navigate(`/explore?loc=${encodeURIComponent(city)}`)}
+                  className="shrink-0 rounded-full border border-hairline/60 bg-white px-3.5 py-2 text-xs font-bold text-ink-secondary shadow-e1 transition-colors hover:border-brand/40 hover:text-brand"
+                >
+                  {city}
+                </button>
               ))}
             </div>
 
-          </div>
-
-          {/* Right: Image & Floating Card */}
-          <div className="flex-1 w-full max-w-[600px] relative hidden lg:flex justify-start items-end pl-4">
-            <div className="relative w-full h-[550px] flex justify-start">
-              
-              {/* Main Image */}
-              <img 
-                src="/img/hero-tech.jpg" 
-                alt="Professional Technician" 
-                className="w-full h-full scale-110 origin-bottom object-contain object-bottom relative z-10 mix-blend-multiply"
-              />
-
-              {/* Floating Review Card Overlay */}
-              <div className="absolute left-[-280px] top-4 z-20 bg-white rounded-2xl shadow-xl p-4 flex flex-col gap-3 border border-hairline/20 w-[220px]">
-                <div className="flex -space-x-2.5 mb-1">
-                  {[1,2,3,4].map(i => (
-                    <img key={i} src={`https://i.pravatar.cc/100?img=${i+10}`} className="w-8 h-8 rounded-full border-2 border-white bg-raised relative z-10" alt="User" style={{ zIndex: 5 - i }} />
-                  ))}
-                  <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[9px] font-bold text-ink-secondary relative z-0">
-                    +2K
-                  </div>
+            <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {bookingSteps.map((step) => (
+                <div key={step.label} className="rounded-lg border border-white/80 bg-white/75 p-3 shadow-e1 backdrop-blur">
+                  <step.icon className="mb-3 size-5 text-brand" />
+                  <p className="text-sm font-bold leading-tight text-ink">{t(step.label)}</p>
+                  <p className="mt-1 text-[11px] font-semibold text-ink-tertiary">{t(step.sub)}</p>
                 </div>
-                
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xl font-extrabold text-ink">4.8/5</span>
-                    <div className="flex gap-0.5">
-                      {[1,2,3,4,5].map(i => <Star key={i} className="size-3.5 fill-amber-400 text-amber-400" />)}
-                    </div>
-                  </div>
-                  <p className="text-[10px] font-medium text-ink-secondary mt-0.5">{t('Based on 2,500+ Reviews')}</p>
-                </div>
-
-                <div className="space-y-2 mt-1">
-                  <div className="flex items-center gap-2">
-                    <div className="bg-red-100 p-1 rounded-full"><MapPin className="size-2.5 text-red-600" /></div>
-                    <span className="text-[10px] font-semibold text-ink">{t('Instant Booking')}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="bg-red-100 p-1 rounded-full"><MapPin className="size-2.5 text-red-600" /></div>
-                    <span className="text-[10px] font-semibold text-ink">{t('24/7 Support')}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="bg-green-100 p-1 rounded-full"><CheckCircle2 className="size-2.5 text-green-600" /></div>
-                    <span className="text-[10px] font-semibold text-ink">{t('Experienced Professionals')}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="bg-blue-100 p-1 rounded-full"><ShieldCheck className="size-2.5 text-blue-600" /></div>
-                    <span className="text-[10px] font-semibold text-ink">{t('Quality Services')}</span>
-                  </div>
-                </div>
-
-                <button className="w-full mt-1 bg-orange-50 text-orange-600 hover:bg-orange-100 py-2 rounded-lg text-xs font-bold transition-colors">
-                  {t('View Reviews')}
-                </button>
-              </div>
-
+              ))}
             </div>
           </div>
 
+          <div className="relative z-10 min-h-[430px] lg:min-h-[560px]">
+            <div className="absolute right-0 top-0 h-full w-full overflow-hidden rounded-lg border border-white/70 bg-white shadow-e3">
+              <img
+                src="/img/hero-servisaku-pro.png"
+                alt="ServisAku professional ready for home service bookings"
+                className="h-full w-full object-contain object-center"
+              />
+              <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/20 to-transparent" />
+            </div>
+
+            <div className="absolute bottom-5 left-5 right-5 grid gap-3 sm:grid-cols-[1fr_auto]">
+              <div className="rounded-lg bg-white p-4 shadow-float">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wide text-ink-tertiary">{t('Today in Kuala Lumpur')}</span>
+                  <span className="rounded-full bg-success-tint px-2.5 py-1 text-xs font-bold text-success">{t('Live')}</span>
+                </div>
+                <div className="grid grid-cols-3 divide-x divide-hairline/70">
+                  <div>
+                    <p className="text-2xl font-extrabold text-ink">32K+</p>
+                    <p className="text-[11px] font-semibold text-ink-tertiary">{t('jobs done')}</p>
+                  </div>
+                  <div className="pl-4">
+                    <p className="text-2xl font-extrabold text-ink">4.8</p>
+                    <p className="text-[11px] font-semibold text-ink-tertiary">{t('rating')}</p>
+                  </div>
+                  <div className="pl-4">
+                    <p className="text-2xl font-extrabold text-ink">30m</p>
+                    <p className="text-[11px] font-semibold text-ink-tertiary">{t('fast slots')}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="hidden w-44 rounded-lg bg-ink p-4 text-white shadow-float sm:block">
+                <div className="mb-5 flex items-center justify-between">
+                  <ShieldCheck className="size-6 text-brand" />
+                  <span className="text-xs font-bold text-white/60">SST ready</span>
+                </div>
+                <p className="text-sm font-bold leading-snug">{t('Insured work with secure payments')}</p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ── Main Content ────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-6 py-16 flex flex-col gap-12">
-        
-        {/* Popular Services Grid */}
+      <main className="mx-auto flex max-w-7xl flex-col gap-12 px-5 py-10 md:px-8 md:py-14">
         <CategoryGrid />
 
-        {/* ── Promos (3 Banners) ─────────────────────────── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 mt-2">
-          {/* Banner 1 */}
-          <div 
-            onClick={() => navigate('/explore')}
-            className="bg-orange-50 rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group cursor-pointer"
-          >
-            <div className="relative z-10 w-3/4">
-              <h3 className="text-lg font-bold text-ink mb-1">{t('Save 20% on your')}<br/><span className="text-brand">{t('first booking!')}</span></h3>
-              <p className="text-[11px] text-ink-secondary font-medium leading-tight mb-3 pr-4">{t('Use this code at checkout to get 20% off your service.')}</p>
-              <div className="bg-white/80 backdrop-blur border-2 border-dashed border-brand text-brand px-4 py-2 rounded-lg text-sm font-bold w-max font-mono tracking-wider shadow-sm">
-                WELCOME20
-              </div>
+        <section>
+          <div className="mb-5 flex items-end justify-between gap-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand">{t('Curated packages')}</p>
+              <h2 className="mt-1 font-display text-2xl font-bold text-ink md:text-3xl">{t('Popular around Malaysia')}</h2>
             </div>
-            <Gift className="absolute -right-4 -bottom-4 w-32 h-32 text-orange-200 group-hover:scale-105 transition-transform" strokeWidth={1.5} />
+            <button
+              type="button"
+              onClick={() => navigate('/explore')}
+              className="hidden items-center gap-2 text-sm font-bold text-brand transition-colors hover:text-brand-ink sm:flex"
+            >
+              {t('See all')} <ArrowRight className="size-4" />
+            </button>
           </div>
 
-          {/* Banner 2 */}
-          <div 
-            onClick={() => navigate('/explore')}
-            className="bg-blue-50 rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group cursor-pointer"
-          >
-            <div className="relative z-10 w-3/4">
-              <h3 className="text-lg font-bold text-ink mb-2">{t('Refer Friends,')}<br/>{t('Earn Rewards!')}</h3>
-              <p className="text-[11px] text-ink-secondary font-medium leading-tight mb-4 pr-4">{t('Get RM10 for every friend you refer.')}</p>
-              <button className="bg-blue-500 text-white px-5 py-2.5 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors shadow-sm w-max">
-                {t('Refer Now')}
+          <div className="grid gap-4 lg:grid-cols-3">
+            {serviceBundles.map((bundle) => (
+              <button
+                key={bundle.title}
+                type="button"
+                onClick={() => navigate('/explore')}
+                className="group grid grid-cols-[112px_1fr] overflow-hidden rounded-lg border border-hairline/70 bg-white text-left shadow-e1 transition-all hover:-translate-y-0.5 hover:shadow-e3 sm:grid-cols-[140px_1fr]"
+              >
+                <img src={bundle.image} alt={bundle.title} className="h-full min-h-36 w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                <div className="flex min-w-0 flex-col p-4">
+                  <span className="mb-3 w-max rounded-full bg-brand-tint px-2.5 py-1 text-[11px] font-bold text-brand">{t(bundle.badge)}</span>
+                  <h3 className="text-base font-extrabold leading-tight text-ink">{t(bundle.title)}</h3>
+                  <p className="mt-2 line-clamp-2 text-xs font-medium leading-5 text-ink-secondary">{t(bundle.description)}</p>
+                  <div className="mt-auto flex items-center justify-between pt-4">
+                    <span className="text-sm font-bold text-ink-secondary">{t('From')} <strong className="text-brand">{bundle.price}</strong></span>
+                    <ArrowRight className="size-4 text-ink-tertiary transition-transform group-hover:translate-x-1 group-hover:text-brand" />
+                  </div>
+                </div>
               </button>
-            </div>
-            <Users className="absolute -right-4 -bottom-4 w-32 h-32 text-blue-200 group-hover:scale-105 transition-transform" strokeWidth={1.5} />
+            ))}
           </div>
+        </section>
 
-          {/* Banner 3 */}
-          <div 
+        <section className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-lg border border-orange-100 bg-orange-50 p-5">
+            <TicketPercent className="mb-5 size-7 text-brand" />
+            <h3 className="text-lg font-extrabold leading-tight text-ink">{t('WELCOME20 for first bookings')}</h3>
+            <p className="mt-2 text-sm font-medium leading-6 text-ink-secondary">{t('Get 20% off any service across Klang Valley, capped at RM50.')}</p>
+          </div>
+          <div className="rounded-lg border border-blue-100 bg-blue-50 p-5">
+            <Clock3 className="mb-5 size-7 text-blue-600" />
+            <h3 className="text-lg font-extrabold leading-tight text-ink">{t('Same-day home care')}</h3>
+            <p className="mt-2 text-sm font-medium leading-6 text-ink-secondary">{t('Book cleaning, AC, plumbing, and electrical slots from morning to evening.')}</p>
+          </div>
+          <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-5">
+            <CreditCard className="mb-5 size-7 text-success" />
+            <h3 className="text-lg font-extrabold leading-tight text-ink">{t('Local payment options')}</h3>
+            <p className="mt-2 text-sm font-medium leading-6 text-ink-secondary">{t('Pay by card, FPX, Touch n Go, GrabPay, or secure in-app wallet.')}</p>
+          </div>
+        </section>
+
+        <section className="grid gap-5 rounded-lg bg-ink p-5 text-white md:grid-cols-[1fr_auto] md:p-7">
+          <div>
+            <div className="mb-3 flex items-center gap-2 text-sm font-bold text-white/70">
+              <Bell className="size-4 text-brand" />
+              {t('For condos, landed homes, offices, and rentals')}
+            </div>
+            <h2 className="max-w-2xl font-display text-2xl font-bold leading-tight md:text-3xl">
+              {t('Keep your home running without calling five different contractors.')}
+            </h2>
+          </div>
+          <button
+            type="button"
             onClick={() => navigate('/explore')}
-            className="bg-amber-50 rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group cursor-pointer"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-white px-5 text-sm font-bold text-ink transition-colors hover:bg-brand hover:text-white"
           >
-            <div className="relative z-10 w-3/4">
-              <h3 className="text-lg font-bold text-ink mb-2">{t('Save More with')}<br/>{t('Recurring Bookings!')}</h3>
-              <p className="text-[11px] text-ink-secondary font-medium leading-tight mb-4">{t('Save up to 20% with a monthly service plan.')}</p>
-              <button className="bg-amber-400 text-ink px-5 py-2.5 rounded-lg text-xs font-bold hover:bg-amber-500 transition-colors shadow-sm w-max">
-                {t('Subscribe Now')}
-              </button>
-            </div>
-            <div className="absolute -right-2 -bottom-2 w-32 h-32 bg-white rounded-2xl shadow-sm flex flex-col items-center justify-center border border-hairline/20 group-hover:scale-105 transition-transform rotate-3">
-              <div className="w-full bg-red-500 h-6 rounded-t-2xl flex items-center justify-center gap-2 absolute top-0">
-                <div className="w-1.5 h-3 bg-white rounded-full"></div>
-                <div className="w-1.5 h-3 bg-white rounded-full"></div>
-              </div>
-              <span className="text-3xl font-extrabold text-red-500 mt-4">20%</span>
-            </div>
-          </div>
-        </div>
+            {t('Start booking')} <ArrowRight className="size-4" />
+          </button>
+        </section>
 
-        {/* Full-width KPI Banner */}
         <TrustStrip />
-
-      </div>
+      </main>
     </motion.div>
   );
 }
