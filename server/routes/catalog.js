@@ -1,0 +1,136 @@
+// Catalog API — DB-driven service abstraction (Phase 1).
+// Public read endpoints (consumers browse before authenticating) plus a
+// side-effect-free pricing quote endpoint.
+//
+//   GET  /services                      list active services
+//   GET  /services/:id                  detail (workflowConfig + add-ons + SLA + packages)
+//   GET  /services/:id/availability     bookable slots derived from the schedule config
+//   POST /pricing/calculate             authoritative price quote (no DB writes)
+import { Router } from 'express';
+import { z } from 'zod';
+import { prisma } from '../db.js';
+import { validate } from '../middleware/validate.js';
+import { asyncHandler } from '../lib/access.js';
+import { listServices, resolveServiceOr404, mapServiceSummary, mapServiceDetail, buildSla } from '../lib/catalog.js';
+import { priceBooking } from '../lib/pricing.js';
+import { SLOT_GROUPS } from '../../src/lib/bookingEngine.js';
+
+const router = Router();
+
+// GET /services — summaries for Home/Explore grids.
+router.get('/services', asyncHandler(async (req, res) => {
+  const services = await listServices();
+  res.json(services.map(mapServiceSummary));
+}));
+
+// GET /services/:id — full detail for ServiceDetail + booking wizard.
+router.get('/services/:id', asyncHandler(async (req, res) => {
+  const service = await resolveServiceOr404(req.params.id);
+  res.json(mapServiceDetail(service));
+}));
+
+// GET /services/:id/availability — next `days` of bookable slots.
+// Phase 1 derives slots from the schedule step (leadTimeHours, granularity);
+// Phase 2 will intersect with real partner availability.
+router.get('/services/:id/availability', asyncHandler(async (req, res) => {
+  const service = await resolveServiceOr404(req.params.id);
+  const sla = buildSla(service.category);
+  const days = Math.min(Math.max(Number(req.query.days) || 7, 1), 30);
+  const leadMs = (sla.lead_time_hours ?? 0) * 3600 * 1000;
+  const earliest = Date.now() + leadMs;
+
+  const allSlots = Object.entries(SLOT_GROUPS).flatMap(([group, g]) =>
+    g.slots.map((time) => ({ time, group })),
+  );
+
+  const result = [];
+  for (let i = 0; i < days; i++) {
+    const day = new Date();
+    day.setHours(0, 0, 0, 0);
+    day.setDate(day.getDate() + i);
+    const dateStr = localDateStr(day); // local Y-M-D, not UTC (avoids off-by-one)
+    const slots = allSlots.map((s) => {
+      const slotTime = parseSlot(day, s.time);
+      return { time: s.time, group: s.group, available: slotTime.getTime() >= earliest };
+    });
+    result.push({ date: dateStr, slots });
+  }
+
+  res.json({
+    service_id: service.id,
+    service_slug: service.slug,
+    slot_granularity_min: sla.slot_granularity_min,
+    lead_time_hours: sla.lead_time_hours,
+    emergency_available: sla.emergency_available,
+    days: result,
+  });
+}));
+
+const calcSchema = z.object({
+  service_id: z.string().min(1).max(50),
+  package_id: z.string().min(1).max(50),
+  addon_ids: z.array(z.string().max(50)).max(20).default([]),
+  bedrooms: z.string().max(20).optional(),
+  service_specific_data: z.record(z.any()).optional(),
+  coupon_code: z.string().max(50).nullish(),
+});
+
+// POST /pricing/calculate — authoritative quote, no side effects (coupon usage is
+// only incremented when a booking is actually created).
+router.post('/pricing/calculate', validate(calcSchema), asyncHandler(async (req, res) => {
+  const b = req.body;
+  const pricing = await priceBooking(prisma, {
+    serviceId: b.service_id,
+    packageId: b.package_id,
+    addonIds: b.addon_ids,
+    bedrooms: b.bedrooms,
+    serviceSpecificData: b.service_specific_data,
+    couponCode: b.coupon_code || undefined,
+  });
+  res.json(mapPricing(pricing));
+}));
+
+export function mapPricing(p) {
+  return {
+    service_id: p.serviceId,
+    service_slug: p.serviceSlug,
+    package_id: p.packageId,
+    package_tier: p.packageTier,
+    package_name: p.packageName,
+    package_name_my: p.packageNameMy,
+    pricing_model: p.pricingModel,
+    size_id: p.sizeId,
+    size_multiplier: p.sizeMultiplier,
+    subtotal: p.subtotal,
+    discount_amount: p.discount,
+    total: p.total,
+    platform_fee: p.platformFee,
+    partner_payout: p.partnerPayout,
+    coupon_code: p.couponCode,
+    addons: p.addons.map((a) => ({ id: a.id, slug: a.slug, name: a.name, price: a.price })),
+    line_items: p.lineItems.map((li) => ({
+      kind: li.kind, ref_id: li.refId, label: li.label, label_my: li.labelMy,
+      qty: li.qty, unit_price: li.unitPrice, total: li.total,
+    })),
+  };
+}
+
+function localDateStr(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function parseSlot(day, label) {
+  // label like "8:00 AM" / "12:00 PM"
+  const m = label.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  const d = new Date(day);
+  if (!m) return d;
+  let hour = Number(m[1]) % 12;
+  if (/PM/i.test(m[3])) hour += 12;
+  d.setHours(hour, Number(m[2]), 0, 0);
+  return d;
+}
+
+export default router;

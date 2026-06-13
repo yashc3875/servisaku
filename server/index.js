@@ -23,6 +23,7 @@ import payoutsRouter from './routes/payouts.js';
 import chatRouter from './routes/chat.js';
 import notificationsRouter from './routes/notifications.js';
 import partnerLocationsRouter from './routes/partnerLocations.js';
+import catalogRouter from './routes/catalog.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -41,6 +42,9 @@ const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHea
 const api = express.Router();
 
 api.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
+
+// Public catalog (browse + price quote) — no auth.
+api.use('/', catalogRouter);
 
 api.use('/auth', authLimiter, authRouter);
 api.use('/bookings', bookingsRouter);

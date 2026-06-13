@@ -42,7 +42,7 @@ const cleaningWorkflow = {
     { type: 'address', title: 'Service address', titleMy: 'Alamat perkhidmatan' },
     { type: 'review_pay', title: 'Review & confirm', titleMy: 'Semak & sahkan' },
   ],
-  requiredParams: ['propertySize', 'propertyType'],
+  requiredParams: ['propertySize'],
   partnerPreferences: { genderMatch: 'optional' },
   jobLifecycle: JOB_LIFECYCLE,
   completionRequirements: {

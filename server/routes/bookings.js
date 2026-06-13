@@ -5,6 +5,7 @@ import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { ApiError, asyncHandler, findUserByEmail, getBookingOr404, isAdmin, assertBookingParticipant } from '../lib/access.js';
 import { priceBooking } from '../lib/pricing.js';
+import { resolveService, validateServiceParams } from '../lib/catalog.js';
 import { canTransition } from '../../src/lib/bookingEngine.js';
 
 const router = Router();
@@ -17,6 +18,10 @@ function mapBookingOut(b) {
     id: b.id,
     service_type: b.serviceType,
     package_name: b.serviceId,
+    category_id: b.categoryId,
+    catalog_service_id: b.catalogServiceId,
+    package_id: b.packageId,
+    service_specific_data: b.details ?? null,
     price: b.price,
     date: b.date,
     time_slot: b.timeSlot,
@@ -88,6 +93,7 @@ const createSchema = z.object({
   package_id: z.string().min(1).max(50),
   addon_ids: z.array(z.string().max(50)).max(20).default([]),
   bedrooms: z.string().max(20).optional(),
+  service_specific_data: z.record(z.any()).optional(), // workflow param answers (JSONB)
   date: z.coerce.date().refine(
     (d) => d.getTime() > Date.now() - 24 * 3600 * 1000,
     'Booking date must not be in the past',
@@ -115,11 +121,23 @@ router.post('/', validate(createSchema), asyncHandler(async (req, res) => {
     }
   }
 
+  // Resolve the catalog service so we can validate service-specific answers against
+  // its workflowConfig. Legacy callers send `bedrooms`; map it to `propertySize`.
+  const service = await resolveService(body.service_id);
+  if (!service) throw new ApiError(400, `Unknown service: ${body.service_id}`);
+
+  const serviceData = { ...(body.service_specific_data || {}) };
+  if (body.bedrooms && serviceData.propertySize === undefined) {
+    serviceData.propertySize = body.bedrooms;
+  }
+  validateServiceParams(service.category?.workflowConfig, serviceData);
+
   const pricing = await priceBooking(prisma, {
     serviceId: body.service_id,
     packageId: body.package_id,
     addonIds: body.addon_ids,
     bedrooms: body.bedrooms,
+    serviceSpecificData: serviceData,
     couponCode: body.coupon_code || undefined,
   });
 
@@ -132,8 +150,12 @@ router.post('/', validate(createSchema), asyncHandler(async (req, res) => {
     }
     const created = await tx.booking.create({
       data: {
-        serviceType: body.service_type || pricing.serviceKey,
+        serviceType: body.service_type || service.name,
         serviceId: pricing.packageName, // legacy: this column carries the package display name
+        categoryId: pricing.categoryId,
+        catalogServiceId: pricing.serviceId,
+        packageId: pricing.packageId,
+        details: Object.keys(serviceData).length ? serviceData : undefined,
         status: 'pending',
         price: pricing.total,
         discountAmount: pricing.discount,
@@ -150,6 +172,20 @@ router.post('/', validate(createSchema), asyncHandler(async (req, res) => {
       },
       include: { consumer: true, partner: true },
     });
+    if (pricing.lineItems?.length) {
+      await tx.bookingItem.createMany({
+        data: pricing.lineItems.map((li) => ({
+          bookingId: created.id,
+          kind: li.kind,
+          refId: li.refId ?? null,
+          label: li.label,
+          labelMy: li.labelMy ?? null,
+          qty: li.qty,
+          unitPrice: li.unitPrice,
+          total: li.total,
+        })),
+      });
+    }
     await tx.escrowLedger.create({
       data: {
         bookingId: created.id,
