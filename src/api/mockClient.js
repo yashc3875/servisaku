@@ -243,5 +243,15 @@ export const mockClient = {
         return { file_url: URL.createObjectURL(file) };
       }
     }
-  }
+  },
+
+  // The dynamic booking engine is DB-backed; demo mode has no catalogue.
+  catalog: {
+    async getCategories() { return []; },
+    async getCategoryServices() { return { category: null, services: [] }; },
+    async getServices() { return []; },
+    async getService() { throw new Error('Live booking requires the backend (demo mode)'); },
+    async calculate() { throw new Error('Live pricing requires the backend (demo mode)'); },
+    async createBooking() { throw new Error('Booking requires the backend (demo mode)'); },
+  },
 };

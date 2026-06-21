@@ -31,3 +31,7 @@ dist-ssr
 .vite
 scratch/
 /index
+
+# local dev database (use Postgres via DATABASE_URL)
+prisma/dev.db
+prisma/*.db

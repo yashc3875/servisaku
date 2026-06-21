@@ -1,0 +1,211 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { servisaku } from '@/api/servisakuClient';
+import { formatMYR } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import StepA from '@/components/booking/steps/StepA';
+import StepB from '@/components/booking/steps/StepB';
+import StepC from '@/components/booking/steps/StepC';
+import StepD from '@/components/booking/steps/StepD';
+import StepE from '@/components/booking/steps/StepE';
+import StepF from '@/components/booking/steps/StepF';
+import { isAfterHours, isUrgent } from '@/components/booking/scheduleRules';
+import { serviceImageFor } from '@/lib/serviceImages';
+
+const STEPS = ['Options', 'Property', 'Schedule', 'Address', 'Details', 'Review'];
+
+// Seed answers from each question's defaults so a price shows immediately.
+function defaultAnswers(service) {
+  const a = {};
+  for (const q of service.questions || []) {
+    if (q.type === 'TIER_SELECT' || q.type === 'SINGLE_SELECT') {
+      a[q.id] = (q.options.find((o) => o.is_default) || q.options[0])?.id;
+    } else if (q.type === 'MULTI_SELECT') a[q.id] = [];
+    else if (q.type === 'TIER_QUANTITY') a[q.id] = {};
+    else if (q.type === 'QUANTITY') a[q.id] = q.required ? (q.config?.min ?? 1) : (q.config?.min ?? 0);
+    else if (q.type === 'HOURS_INPUT') a[q.id] = q.config?.min ?? 1;
+  }
+  return a;
+}
+
+// Client mirror of the server's required-answer check (Step A gating only).
+function stepAComplete(service, answers) {
+  return (service.questions || []).every((q) => {
+    if (!q.required) return true;
+    const v = answers[q.id];
+    if (q.type === 'TIER_QUANTITY') return v && Object.values(v).some((n) => Number(n) > 0);
+    if (q.type === 'MULTI_SELECT') return Array.isArray(v) && v.length > 0;
+    return v !== undefined && v !== null && v !== '';
+  });
+}
+
+export default function ServiceBooking() {
+  const { slug } = useParams();
+  const navigate = useNavigate();
+
+  const { data: service, isLoading, error } = useQuery({
+    queryKey: ['booking-service', slug],
+    queryFn: () => servisaku.catalog.getService(slug),
+  });
+
+  const [step, setStep] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [property, setProperty] = useState({ propertyType: 'residential', buildingType: 'apartment', lift: 'yes', parking: 'yes' });
+  const [schedule, setSchedule] = useState({ date: '', timeSlot: '' });
+  const [address, setAddress] = useState({});
+  const [extras, setExtras] = useState({ notes: '', photos: [] });
+  const [payment, setPayment] = useState({ method: 'fpx' });
+  const [savedCity, setSavedCity] = useState(null);
+
+  const [quote, setQuote] = useState(null);
+  const [quoteError, setQuoteError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const debounceRef = useRef();
+
+  // Seed defaults + prefill city once the service loads.
+  useEffect(() => {
+    if (!service) return;
+    setAnswers(defaultAnswers(service));
+    servisaku.auth.me().then((me) => { if (me?.city) { setSavedCity(me.city); } }).catch(() => {});
+  }, [service]);
+
+  const afterHours = isAfterHours(schedule.timeSlot);
+  const urgent = isUrgent(schedule.date);
+
+  // Live, authoritative quote — debounced on every answer/schedule change.
+  useEffect(() => {
+    if (!service || !service.pricing_type) return;
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const q = await servisaku.catalog.calculate({
+          service_slug: service.slug, answers, after_hours: afterHours, urgent,
+        });
+        setQuote(q); setQuoteError(null);
+      } catch (e) {
+        setQuote(null); setQuoteError(e.message || 'Complete the required options to see a price');
+      }
+    }, 300);
+    return () => clearTimeout(debounceRef.current);
+  }, [service, answers, afterHours, urgent]);
+
+  const setAnswer = (id, v) => setAnswers((a) => ({ ...a, [id]: v }));
+
+  const canAdvance = useMemo(() => {
+    if (!service) return false;
+    switch (step) {
+      case 0: return stepAComplete(service, answers);
+      case 1: return !!property.propertyType && !!property.buildingType;
+      case 2: return !!schedule.date && !!schedule.timeSlot;
+      case 3: return !!address.addressLine && !!address.contactPerson && !!address.contactPhone;
+      default: return true;
+    }
+  }, [service, step, answers, property, schedule, address]);
+
+  async function submit() {
+    setSubmitting(true);
+    try {
+      const composedAddress = [address.addressLine, address.unitNumber && `Unit ${address.unitNumber}`]
+        .filter(Boolean).join(', ');
+      const booking = await servisaku.catalog.createBooking({
+        service_slug: service.slug,
+        answers,
+        property,
+        contact: { person: address.contactPerson, phone: address.contactPhone },
+        photos: extras.photos,
+        after_hours: afterHours,
+        urgent,
+        date: schedule.date,
+        time_slot: schedule.timeSlot,
+        address: composedAddress,
+        city: address.city || savedCity || null,
+        notes: extras.notes || null,
+        payment_method: payment.method,
+      });
+      toast.success('Booking confirmed!');
+      navigate(`/booking/${booking.id}`);
+    } catch (e) {
+      if (/log in|unauth|401/i.test(e.message)) {
+        toast.info('Please log in to confirm your booking');
+        setTimeout(() => navigate('/otp-login'), 800);
+      } else {
+        toast.error(e.message || 'Could not create booking');
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (isLoading) {
+    return <div className="flex h-[60vh] items-center justify-center"><Loader2 className="animate-spin text-brand" /></div>;
+  }
+  if (error || !service) {
+    return <div className="p-6 text-center text-ink-secondary">Service not found.</div>;
+  }
+  if (!service.pricing_type) {
+    return (
+      <div className="p-6 text-center text-ink-secondary">
+        This service isn’t available in the dynamic booking flow yet.
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 pb-32 pt-4">
+      {/* Header + progress */}
+      <div>
+        <button onClick={() => (step === 0 ? navigate(-1) : setStep((s) => s - 1))} className="mb-3 flex items-center gap-1 text-sm text-ink-secondary hover:text-ink">
+          <ArrowLeft size={16} /> Back
+        </button>
+        {serviceImageFor(service.slug) && step === 0 && (
+          <img
+            src={serviceImageFor(service.slug)}
+            alt={service.name}
+            className="mb-3 h-40 w-full rounded-2xl object-cover"
+          />
+        )}
+        <h1 className="text-xl font-bold text-ink">{service.name}</h1>
+        <div className="mt-3 flex gap-1.5">
+          {STEPS.map((label, i) => (
+            <div key={label} className={`h-1.5 flex-1 rounded-full ${i <= step ? 'bg-brand' : 'bg-hairline'}`} />
+          ))}
+        </div>
+        <div className="mt-2 text-sm font-medium text-ink-secondary">Step {step + 1} of {STEPS.length} · {STEPS[step]}</div>
+      </div>
+
+      {/* Step body */}
+      <div>
+        {step === 0 && <StepA service={service} answers={answers} setAnswer={setAnswer} />}
+        {step === 1 && <StepB property={property} setProperty={setProperty} />}
+        {step === 2 && <StepC schedule={schedule} setSchedule={setSchedule} />}
+        {step === 3 && <StepD address={address} setAddress={setAddress} savedCity={savedCity} />}
+        {step === 4 && <StepE extras={extras} setExtras={setExtras} />}
+        {step === 5 && <StepF service={service} quote={quote} quoteError={quoteError} payment={payment} setPayment={setPayment} />}
+      </div>
+
+      {/* Sticky footer: live total + nav */}
+      <div className="fixed inset-x-0 bottom-0 border-t border-hairline bg-surface/95 backdrop-blur">
+        <div className="mx-auto flex max-w-2xl items-center justify-between gap-4 px-4 py-3">
+          <div>
+            <div className="text-xs text-ink-secondary">Estimated total</div>
+            <div className="text-lg font-bold tabular-nums text-ink">
+              {quote ? formatMYR(quote.total, { decimals: !Number.isInteger(quote.total) }) : '—'}
+            </div>
+          </div>
+          {step < STEPS.length - 1 ? (
+            <Button variant="primary" size="lg" disabled={!canAdvance} onClick={() => setStep((s) => s + 1)}>
+              Continue <ArrowRight size={18} className="ml-1" />
+            </Button>
+          ) : (
+            <Button variant="accent" size="lg" loading={submitting} disabled={submitting || !quote} onClick={submit}>
+              Confirm booking
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

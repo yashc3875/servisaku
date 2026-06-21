@@ -1,22 +1,52 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Search, ArrowRight, LayoutGrid, List, MapPin, ShieldCheck, SlidersHorizontal, Star } from 'lucide-react';
+import {
+  Search, ArrowRight, LayoutGrid, List, MapPin, ShieldCheck, SlidersHorizontal, Star,
+  Sparkles, Wind, Droplet, Droplets, Zap, Paintbrush, PaintRoller, Bug, Scissors,
+  Wrench, Hammer, Drill, Clock, Home,
+} from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
+import { servisaku } from '@/api/servisakuClient';
 import { SERVICES_DISPLAY } from '@/lib/services';
-import { cn } from '@/lib/utils';
+import { cn, formatMYR, formatDuration } from '@/lib/utils';
 import { Chip } from '@/components/primitives/Chip';
+import CategoryTiles from '@/components/CategoryTiles';
+import { serviceImageFor } from '@/lib/serviceImages';
 import { variants, safeMotion } from '@/lib/design/motion';
 import { useTranslation } from '@/lib/useTranslation';
 
-const CATEGORIES = [
-  { label: 'All', match: 'all' },
-  { label: 'Cleaning', match: 'cleaning' },
-  { label: 'AC', match: 'ac' },
-  { label: 'Plumbing', match: 'plumbing' },
-  { label: 'Electrical', match: 'electrical' },
-  { label: 'Painting', match: 'painting' },
-  { label: 'Pest Control', match: 'pest' },
-];
+// icon_key / accent (seeded) → presentation, + curated images where slugs match.
+const ICONS = { Sparkles, Wind, Droplet, Droplets, Zap, Paintbrush, PaintRoller, Bug, Scissors, Wrench, Hammer, Drill, Clock, Home };
+const TONES = {
+  pink: 'bg-pink-50 text-pink-600', slate: 'bg-slate-100 text-slate-600', emerald: 'bg-emerald-50 text-success',
+  lime: 'bg-lime-50 text-lime-600', sky: 'bg-sky-50 text-sky-600', orange: 'bg-orange-50 text-brand',
+  amber: 'bg-amber-50 text-warning', blue: 'bg-blue-50 text-blue-600', stone: 'bg-stone-100 text-stone-600',
+  violet: 'bg-violet-50 text-violet-600', teal: 'bg-teal-50 text-teal-600', red: 'bg-red-50 text-danger',
+};
+const IMAGES = {
+  cleaning: '/img/cleaning-new.jpg', 'ac-services': '/img/ac-new.jpg', plumbing: '/img/plumbing-new.jpg',
+  electrician: '/img/electrical-new.jpg', 'painting-renovation': '/img/painting-new.jpg', 'pest-control': '/img/pest-new.jpg',
+};
+
+// Live service summary (GET /services) → the card shape this page renders.
+function mapService(s, catName) {
+  const from = s.price_from > 0 ? s.price_from : s.visit_fee;
+  return {
+    id: s.slug,
+    name: s.name,
+    nameMy: s.name_my,
+    description: s.description || catName || '',
+    descriptionMy: s.description_my || catName || '',
+    price: from > 0 ? `From ${formatMYR(Math.round(from))}` : 'Get quote',
+    duration: formatDuration(s.duration_min, s.duration_max),
+    icon: ICONS[s.icon_key] || Wrench,
+    color: TONES[s.accent] || 'bg-brand-tint text-brand',
+    image: serviceImageFor(s.slug) || IMAGES[s.category_slug] || null,
+    categorySlug: s.category_slug,
+    href: `/book-service/${s.slug}`,
+  };
+}
 
 export default function Explore() {
   const { t, tField, lang } = useTranslation();
@@ -58,14 +88,39 @@ export default function Explore() {
     setSearchParams(params);
   };
 
-  const filtered = SERVICES_DISPLAY.filter(s => {
+  // Live catalogue (all 71 services); falls back to the curated static list offline.
+  const { data: liveCategories } = useQuery({
+    queryKey: ['explore-categories'],
+    queryFn: () => servisaku.catalog.getCategories(),
+    staleTime: 5 * 60 * 1000,
+  });
+  const { data: liveServices } = useQuery({
+    queryKey: ['explore-services'],
+    queryFn: () => servisaku.catalog.getServices(),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const catNameBySlug = Object.fromEntries((liveCategories || []).map((c) => [c.slug, c.name]));
+  const services = liveServices?.length
+    ? liveServices.map((s) => mapService(s, catNameBySlug[s.category_slug]))
+    : SERVICES_DISPLAY;
+
+  const categoryChips = [
+    { label: 'All', match: 'all' },
+    ...(liveCategories || []).map((c) => ({ label: c.name, match: c.slug })),
+  ];
+
+  const filtered = services.filter((s) => {
     const searchable = `${s.name} ${s.description || ''} ${s.nameMy || ''} ${s.descriptionMy || ''}`.toLowerCase();
     const matchesQuery = searchable.includes(query.toLowerCase());
     const matchesCategory =
       activeCategory === 'all' ||
-      searchable.includes(activeCategory);
+      (s.categorySlug ? s.categorySlug === activeCategory : searchable.includes(activeCategory));
     return matchesQuery && matchesCategory;
   });
+
+  // "All" (no search) shows the 12 category cards; a chip or a search shows services.
+  const showCategories = activeCategory === 'all' && !query.trim() && (liveCategories?.length || 0) > 0;
 
   const stagger = safeMotion(variants.stagger);
   const staggerItem = safeMotion(variants.staggerItem);
@@ -122,7 +177,7 @@ export default function Explore() {
 
         {/* Category filter chips */}
         <div className="flex gap-2 overflow-x-auto scrollbar-none -mx-5 px-5 mt-3">
-          {CATEGORIES.map(cat => (
+          {categoryChips.map(cat => (
             <Chip
               key={cat.match}
               tone={activeCategory === cat.match ? 'brand' : 'neutral'}
@@ -138,7 +193,10 @@ export default function Explore() {
 
       {/* Content */}
       <div className="px-5 lg:px-8 pt-5">
-        {viewMode === 'list' ? (
+        {showCategories ? (
+          /* ─── "All" → Urban-Company-style category tiles ─── */
+          <CategoryTiles categories={liveCategories} onPick={setActiveCategory} />
+        ) : viewMode === 'list' ? (
           /* ─── List View ─── */
           <motion.div
             className="grid grid-cols-1 lg:grid-cols-2 gap-4"
@@ -152,15 +210,21 @@ export default function Explore() {
               return (
                 <motion.div key={s.id} variants={staggerItem} whileHover={variants.pressable.whileHover} whileTap={variants.pressable.whileTap}>
                   <Link
-                    to={`/service/${s.id}`}
+                    to={s.href || `/service/${s.id}`}
                     className="group flex items-center gap-4 rounded-lg border border-hairline/70 bg-white p-4 shadow-e1 transition-all hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-e3"
                   >
                     <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg sm:h-28 sm:w-28">
-                      <img
-                        src={s.image}
-                        alt={s.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
+                      {s.image ? (
+                        <img
+                          src={s.image}
+                          alt={s.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className={cn('flex h-full w-full items-center justify-center', s.color)}>
+                          <Icon className="h-8 w-8" />
+                        </div>
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
@@ -203,7 +267,7 @@ export default function Explore() {
               return (
                 <motion.div key={s.id} variants={staggerItem} whileHover={variants.pressable.whileHover} whileTap={variants.pressable.whileTap} className="h-full">
                   <Link
-                    to={`/service/${s.id}`}
+                    to={s.href || `/service/${s.id}`}
                     className="group flex h-full flex-col overflow-hidden rounded-lg border border-hairline/70 bg-white shadow-e1 transition-all hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-e3"
                   >
                     {s.image ? (

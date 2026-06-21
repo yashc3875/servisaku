@@ -5,7 +5,9 @@ import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { ApiError, asyncHandler, findUserByEmail, getBookingOr404, isAdmin, assertBookingParticipant } from '../lib/access.js';
 import { priceBooking } from '../lib/pricing.js';
-import { resolveService, validateServiceParams } from '../lib/catalog.js';
+import { resolveService, resolveServiceDetailOr404, validateServiceParams, toEngineService } from '../lib/catalog.js';
+import { computePrice, validateAnswers } from '../lib/dynamicPricing.js';
+import { GLOBAL_CONFIG, CONFIG_VERSION } from '../lib/bookingEngineConfig.js';
 import { isPartnerEligible } from '../lib/matching.js';
 import { canTransition } from '../../src/lib/bookingEngine.js';
 
@@ -23,6 +25,11 @@ function mapBookingOut(b) {
     catalog_service_id: b.catalogServiceId,
     package_id: b.packageId,
     service_specific_data: b.details ?? null,
+    // Dynamic bookings nest the pricing answers under details.answers; legacy
+    // bookings store the flat param object directly.
+    answers: b.details?.answers ?? b.details ?? null,
+    price_breakdown: b.priceBreakdown ?? null,
+    config_version: b.configVersion ?? null,
     price: b.price,
     date: b.date,
     time_slot: b.timeSlot,
@@ -198,6 +205,115 @@ router.post('/', validate(createSchema), asyncHandler(async (req, res) => {
         grossAmount: pricing.total,
         platformFee: pricing.platformFee,
         partnerPayout: pricing.partnerPayout,
+        status: 'held',
+      },
+    });
+    return created;
+  });
+
+  res.status(201).json(mapBookingOut(booking));
+}));
+
+// ── Dynamic booking-engine create ────────────────────────────────────────────
+// POST /api/bookings/dynamic — the question-driven counterpart of POST /bookings.
+// Price is recomputed server-side from the catalogue (client-sent amounts ignored)
+// and the answers + breakdown are snapshotted so invoices never drift with config.
+const dynamicCreateSchema = z.object({
+  service_slug: z.string().min(1).max(80),
+  answers: z.record(z.any()).default({}),
+  property: z.record(z.any()).optional(),   // Step B — property & access
+  contact: z.record(z.any()).optional(),    // Step D — contact person/phone
+  photos: z.array(z.string().max(2048)).max(5).optional(), // Step E
+  after_hours: z.boolean().optional(),
+  urgent: z.boolean().optional(),
+  date: z.coerce.date().refine(
+    (d) => d.getTime() > Date.now() - 24 * 3600 * 1000,
+    'Booking date must not be in the past',
+  ),
+  time_slot: z.string().max(20).nullish(),
+  address: z.string().max(500).nullish(),
+  city: z.string().max(100).nullish(),
+  notes: z.string().max(2000).nullish(),
+  partner_email: z.string().email().nullish(),
+  payment_method: z.enum(PAYMENT_METHODS).default('fpx'),
+});
+
+router.post('/dynamic', validate(dynamicCreateSchema), asyncHandler(async (req, res) => {
+  const body = req.body;
+
+  const service = await resolveServiceDetailOr404(body.service_slug);
+  if (!service.pricingType) throw new ApiError(400, `Service "${service.slug}" is not a dynamic-engine service`);
+
+  const engineService = toEngineService(service);
+  const { ok, errors } = validateAnswers(engineService, body.answers);
+  if (!ok) throw new ApiError(400, errors.join('; '));
+
+  let partner = null;
+  if (body.partner_email) {
+    partner = await findUserByEmail(body.partner_email);
+    if (!partner || partner.role !== 'partner' || !partner.partnerVerified) {
+      throw new ApiError(400, 'Selected partner is not available');
+    }
+    if (!(await isPartnerEligible(partner.id, service.id))) {
+      throw new ApiError(400, 'Selected partner is not qualified for this service');
+    }
+  }
+
+  const pricing = computePrice(engineService, body.answers, {
+    globalConfig: GLOBAL_CONFIG,
+    afterHours: body.after_hours,
+    urgent: body.urgent,
+  });
+
+  const booking = await prisma.$transaction(async (tx) => {
+    const created = await tx.booking.create({
+      data: {
+        serviceType: service.name,
+        serviceId: service.name, // legacy display column
+        categoryId: service.categoryId,
+        catalogServiceId: service.id,
+        // Full snapshot: pricing answers + universal-step context (B/D/E).
+        details: { answers: body.answers, property: body.property ?? null, contact: body.contact ?? null, photos: body.photos ?? [] },
+        priceBreakdown: pricing,          // full computed breakdown snapshot
+        configVersion: CONFIG_VERSION,
+        status: 'pending',
+        price: pricing.total,
+        discountAmount: pricing.promoDiscount,
+        date: body.date,
+        timeSlot: body.time_slot ?? null,
+        address: body.address ?? null,
+        city: body.city ?? null,
+        notes: body.notes ?? null,
+        paymentMethod: body.payment_method,
+        paymentStatus: 'pending',
+        consumerId: req.user.id,
+        partnerId: partner?.id ?? null,
+      },
+      include: { consumer: true, partner: true },
+    });
+
+    // Line-item rows mirror the price breakdown for reporting parity with the
+    // legacy engine; the authoritative snapshot lives in booking.priceBreakdown.
+    if (pricing.breakdown?.length) {
+      await tx.bookingItem.createMany({
+        data: pricing.breakdown.map((li) => ({
+          bookingId: created.id,
+          kind: (li.type || 'line').toLowerCase(),
+          refId: li.optionId ?? null,
+          label: li.label,
+          qty: li.qty ?? 1,
+          unitPrice: li.unitPrice ?? li.amount,
+          total: li.amount,
+        })),
+      });
+    }
+
+    await tx.escrowLedger.create({
+      data: {
+        bookingId: created.id,
+        grossAmount: pricing.total,
+        platformFee: pricing.platformFee,
+        partnerPayout: Math.max(0, pricing.total - pricing.platformFee),
         status: 'held',
       },
     });

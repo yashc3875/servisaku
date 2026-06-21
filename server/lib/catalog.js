@@ -24,6 +24,118 @@ export async function resolveServiceOr404(idOrSlug) {
   return service;
 }
 
+// Full detail loader for the booking wizard: legacy packages/addons PLUS the
+// dynamic Step-A questions/options (ordered). Used by GET /services/:id.
+export async function resolveServiceDetail(idOrSlug) {
+  if (!idOrSlug) return null;
+  return prisma.service.findFirst({
+    where: { isActive: true, OR: [{ slug: String(idOrSlug) }, { id: String(idOrSlug) }] },
+    include: {
+      category: true,
+      packages: { orderBy: { sortOrder: 'asc' } },
+      addons: { where: { isActive: true } },
+      questions: { orderBy: { sortOrder: 'asc' }, include: { options: { orderBy: { sortOrder: 'asc' } } } },
+    },
+  });
+}
+
+export async function resolveServiceDetailOr404(idOrSlug) {
+  const service = await resolveServiceDetail(idOrSlug);
+  if (!service) throw new ApiError(404, `Service not found: ${idOrSlug}`);
+  return service;
+}
+
+// ── Categories ───────────────────────────────────────────────────────────────
+export async function listCategories() {
+  return prisma.serviceCategory.findMany({
+    where: { isActive: true },
+    orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+    include: { services: { where: { isActive: true }, select: { id: true } } },
+  });
+}
+
+export async function getCategoryServicesOr404(slug) {
+  const category = await prisma.serviceCategory.findFirst({ where: { slug: String(slug), isActive: true } });
+  if (!category) throw new ApiError(404, `Category not found: ${slug}`);
+  const services = await prisma.service.findMany({
+    where: { categoryId: category.id, isActive: true },
+    orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+    include: { category: true },
+  });
+  return { category, services };
+}
+
+export function mapCategory(c) {
+  return {
+    id: c.id,
+    slug: c.slug,
+    name: c.name,
+    name_my: c.nameMy,
+    tagline: c.tagline ?? null,
+    icon_key: c.iconKey,
+    accent: c.accent,
+    hero_image: c.heroImage ?? null,
+    header_image: c.headerImage ?? null,
+    price_from: c.priceFrom,
+    sort_order: c.sortOrder,
+    emergency_supported: !!c.emergencySupported,
+    recurring_supported: !!c.recurringSupported,
+    service_count: Array.isArray(c.services) ? c.services.length : undefined,
+  };
+}
+
+// ── Step-A questions (dynamic booking engine) ────────────────────────────────
+export function mapQuestion(q) {
+  return {
+    id: q.key, // stable answer key
+    label: q.label,
+    type: q.type,
+    required: q.required,
+    sort_order: q.sortOrder,
+    config: q.config ?? null,
+    options: (q.options || []).map((o) => ({
+      id: o.key,
+      label: o.label,
+      price_modifier: o.priceModifier,
+      unit_price: o.unitPrice,
+      price_modifier_per_sqft: o.priceModifierPerSqft,
+      is_default: o.isDefault,
+      sort_order: o.sortOrder,
+    })),
+  };
+}
+
+// Convert a DB service (with questions/options) into the shape computePrice()
+// expects (DB `key` → engine `id`). One conversion point keeps the engine pure.
+export function toEngineService(s) {
+  return {
+    slug: s.slug,
+    name: s.name,
+    pricingType: s.pricingType,
+    basePrice: s.basePrice,
+    visitFee: s.visitFee,
+    minQty: s.minQty,
+    rate: s.rate,
+    unitPrice: s.unitPrice,
+    sstEnabled: s.sstEnabled,
+    questions: (s.questions || []).map((q) => ({
+      id: q.key,
+      label: q.label,
+      type: q.type,
+      required: q.required,
+      config: q.config ?? null,
+      options: (q.options || []).map((o) => ({
+        id: o.key,
+        label: o.label,
+        priceModifier: o.priceModifier,
+        unitPrice: o.unitPrice,
+        priceModifierPerSqft: o.priceModifierPerSqft,
+        isDefault: o.isDefault,
+      })),
+    })),
+  };
+}
+
 export async function listServices() {
   return prisma.service.findMany({
     where: { isActive: true },
@@ -69,6 +181,9 @@ export function mapServiceSummary(s) {
     base_price: s.basePrice,
     price_from: s.category?.priceFrom ?? s.basePrice,
     pricing_model: s.pricingModel,
+    pricing_type: s.pricingType ?? null,
+    visit_fee: s.visitFee ?? 0,
+    converts_to_quote: !!s.convertsToQuote,
     duration_min: s.durationMin,
     duration_max: s.durationMax,
     emergency_supported: !!s.category?.emergencySupported,
@@ -112,8 +227,12 @@ export function mapServiceDetail(s) {
     pricing_config: s.pricingConfig ?? null,
     workflow_config: s.category?.workflowConfig ?? null,
     sla: buildSla(s.category),
+    min_qty: s.minQty ?? 1,
+    sst_enabled: !!s.sstEnabled,
     packages: (s.packages || []).map(mapPackage),
     addons: (s.addons || []).map(mapAddon),
+    // Dynamic Step-A — empty for legacy package services, populated for engine services.
+    questions: (s.questions || []).map(mapQuestion),
   };
 }
 

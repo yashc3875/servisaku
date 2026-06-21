@@ -28,6 +28,9 @@ const PartnerOnboarding = lazy(() => import('./pages/PartnerOnboarding'));
 const ConsumerProfile = lazy(() => import('./pages/ConsumerProfile'));
 const AdminUsers = lazy(() => import('./pages/AdminUsers'));
 const BookingFlow = lazy(() => import('./pages/BookingFlow'));
+const ServiceBooking = lazy(() => import('./pages/ServiceBooking'));
+const Catalog = lazy(() => import('./pages/Catalog'));
+const CatalogCategory = lazy(() => import('./pages/CatalogCategory'));
 const AdminBookings = lazy(() => import('./pages/AdminBookings'));
 const PaymentCheckout = lazy(() => import('./pages/PaymentCheckout'));
 const PartnerEarnings = lazy(() => import('./pages/PartnerEarnings'));
@@ -82,8 +85,11 @@ const AuthenticatedApp = () => {
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
           <Route path="/explore" element={<Explore />} />
+          <Route path="/catalog" element={<Catalog />} />
+          <Route path="/catalog/:slug" element={<CatalogCategory />} />
           <Route path="/service/:serviceId" element={<ServiceDetail />} />
           <Route path="/book/:serviceId" element={<BookingFlow />} />
+          <Route path="/book-service/:slug" element={<ServiceBooking />} />
           <Route path="/bookings" element={<ProtectedRoute><BookingHistory /></ProtectedRoute>} />
           <Route path="/booking/:bookingId" element={<ProtectedRoute><BookingDetail /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

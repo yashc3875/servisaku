@@ -11,13 +11,31 @@ import { z } from 'zod';
 import { prisma } from '../db.js';
 import { validate } from '../middleware/validate.js';
 import { authenticate } from '../middleware/auth.js';
-import { asyncHandler } from '../lib/access.js';
-import { listServices, resolveServiceOr404, mapServiceSummary, mapServiceDetail, buildSla } from '../lib/catalog.js';
+import { asyncHandler, ApiError } from '../lib/access.js';
+import {
+  listServices, resolveServiceOr404, resolveServiceDetailOr404, mapServiceSummary, mapServiceDetail, buildSla,
+  listCategories, getCategoryServicesOr404, mapCategory, toEngineService,
+} from '../lib/catalog.js';
 import { priceBooking } from '../lib/pricing.js';
+import { computePrice, validateAnswers } from '../lib/dynamicPricing.js';
+import { GLOBAL_CONFIG, CONFIG_VERSION } from '../lib/bookingEngineConfig.js';
 import { findEligiblePartners } from '../lib/matching.js';
 import { SLOT_GROUPS } from '../../src/lib/bookingEngine.js';
 
 const router = Router();
+
+// ── Categories (dynamic booking engine) ──────────────────────────────────────
+// GET /categories — Home grid (12 categories).
+router.get('/categories', asyncHandler(async (req, res) => {
+  const categories = await listCategories();
+  res.json(categories.map(mapCategory));
+}));
+
+// GET /categories/:slug/services — services within a category.
+router.get('/categories/:slug/services', asyncHandler(async (req, res) => {
+  const { category, services } = await getCategoryServicesOr404(req.params.slug);
+  res.json({ category: mapCategory(category), services: services.map(mapServiceSummary) });
+}));
 
 // GET /services — summaries for Home/Explore grids.
 router.get('/services', asyncHandler(async (req, res) => {
@@ -26,8 +44,10 @@ router.get('/services', asyncHandler(async (req, res) => {
 }));
 
 // GET /services/:id — full detail for ServiceDetail + booking wizard.
+// Returns the dynamic Step-A `questions` alongside legacy packages/addons, so the
+// spec's GET /services/:slug → { service, questions, pricingType, visitFee } holds.
 router.get('/services/:id', asyncHandler(async (req, res) => {
-  const service = await resolveServiceOr404(req.params.id);
+  const service = await resolveServiceDetailOr404(req.params.id);
   res.json(mapServiceDetail(service));
 }));
 
@@ -112,6 +132,54 @@ router.post('/pricing/calculate', validate(calcSchema), asyncHandler(async (req,
   });
   res.json(mapPricing(pricing));
 }));
+
+// ── Dynamic booking-engine quote ─────────────────────────────────────────────
+// POST /bookings/calculate — side-effect-free price for a question-driven service.
+// Public (quote before login), like /pricing/calculate. Registered on the catalog
+// router which mounts before the auth-gated /bookings router, so it stays public.
+const dynamicCalcSchema = z.object({
+  service_slug: z.string().min(1).max(80),
+  answers: z.record(z.any()).default({}),
+  after_hours: z.boolean().optional(),
+  urgent: z.boolean().optional(),
+});
+
+router.post('/bookings/calculate', validate(dynamicCalcSchema), asyncHandler(async (req, res) => {
+  const service = await resolveServiceDetailOr404(req.body.service_slug);
+  if (!service.pricingType) {
+    throw new ApiError(400, `Service "${service.slug}" is not a dynamic-engine service`);
+  }
+  const engineService = toEngineService(service);
+  const { ok, errors } = validateAnswers(engineService, req.body.answers);
+  if (!ok) throw new ApiError(400, errors.join('; '));
+
+  const pricing = computePrice(engineService, req.body.answers, {
+    globalConfig: GLOBAL_CONFIG,
+    afterHours: req.body.after_hours,
+    urgent: req.body.urgent,
+  });
+  res.json(mapDynamicPricing(service, pricing));
+}));
+
+export function mapDynamicPricing(service, p) {
+  return {
+    service_id: service.id,
+    service_slug: service.slug,
+    pricing_type: p.pricingType,
+    currency: p.currency,
+    service_total: p.serviceTotal,
+    visit_fee: p.visitFee,
+    surcharges: p.surcharges,
+    subtotal: p.subtotal,
+    platform_fee: p.platformFee,
+    sst_enabled: p.sstEnabled,
+    tax: p.tax,
+    promo_discount: p.promoDiscount,
+    total: p.total,
+    breakdown: p.breakdown,
+    config_version: CONFIG_VERSION,
+  };
+}
 
 export function mapPricing(p) {
   return {

@@ -70,7 +70,9 @@ model Booking {
   categoryId     String?
   catalogServiceId String?
   packageId      String?
-  details        Json? // service-specific answers from workflow params (BHK, unit count, …)
+  details        Json? // service-specific answers from workflow params (BHK, unit count, …) — also the dynamic Step-A answer snapshot
+  priceBreakdown Json? // computePrice() snapshot (line items + fees) — invoices never recalc from current config
+  configVersion  String? // servisaku-services-config.json version in force at booking time
   scheduledStart DateTime?
   scheduledEnd   DateTime?
   lifecycle      Json? // timestamped status transitions
@@ -280,8 +282,18 @@ model Service {
   description   String   @default("")
   descriptionMy String   @default("")
   basePrice     Float
-  pricingModel  String   @default("flat") // flat | per_unit | area_based | hourly | quote
+  pricingModel  String   @default("flat") // flat | per_unit | area_based | hourly | quote (legacy package engine)
   pricingConfig Json? // model-specific params (tier table, unit price, hourly rate…)
+  // ── Dynamic booking-engine fields (booking-flows.md) ──────────────────────
+  // pricingType drives computePrice() in server/lib/dynamicPricing.js; questions
+  // below define Step A. Nullable so legacy package/addon services are unaffected.
+  pricingType     String? // FIXED | PER_UNIT | TIERED | PER_SQFT | PER_HOUR | DIAGNOSTIC | BASE_PLUS_ADDONS | TIER_QUANTITY
+  unitPrice       Float? // PER_UNIT default unit price (display/metadata)
+  rate            Float? // PER_SQFT rate/sqft or PER_HOUR rate/hr (display/metadata)
+  visitFee        Float    @default(0)
+  minQty          Int      @default(1)
+  sstEnabled      Boolean  @default(false)
+  convertsToQuote Boolean  @default(false) // large jobs may convert to a custom site quote
   durationMin   Int      @default(60)
   durationMax   Int      @default(120)
   image         String?
@@ -294,10 +306,47 @@ model Service {
   category        ServiceCategory  @relation(fields: [categoryId], references: [id])
   packages        ServicePackage[]
   addons          ServiceAddon[]
+  questions       BookingQuestion[]
   bookings        Booking[]
   specializations PartnerSpecialization[]
 
   @@index([categoryId, isActive])
+}
+
+// ─── §4 Dynamic Step-A questions (DB-driven booking engine) ──────────────────
+// A service's Step A is a list of these; everything else (Steps B–F) is universal.
+// `key` is the stable answer key used in Booking.details / price snapshots.
+model BookingQuestion {
+  id         String  @id @default(cuid())
+  serviceId  String
+  key        String // answer key ("length", "qty", "units")
+  label      String
+  type       String // TIER_SELECT | SINGLE_SELECT | MULTI_SELECT | QUANTITY | TIER_QUANTITY | AREA_INPUT | HOURS_INPUT | INFO
+  required   Boolean @default(true)
+  sortOrder  Int     @default(0)
+  config     Json? // { min, max, step, unit, pricePerUnit, ratePerSqft, ratePerHour, perUnit, perSqft }
+
+  service Service          @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  options QuestionOption[]
+
+  @@unique([serviceId, key])
+  @@index([serviceId, sortOrder])
+}
+
+model QuestionOption {
+  id                   String  @id @default(cuid())
+  questionId           String
+  key                  String // option key ("short", "1_5hp")
+  label                String
+  priceModifier        Float   @default(0) // SELECT/TIER_SELECT flat add (TIER_SELECT sets base)
+  unitPrice            Float? // TIER_QUANTITY per-option unit price
+  priceModifierPerSqft Float? // AREA_INPUT companion SELECTs: per-sqft add/subtract
+  isDefault            Boolean @default(false)
+  sortOrder            Int     @default(0)
+
+  question BookingQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, key])
 }
 
 model ServicePackage {

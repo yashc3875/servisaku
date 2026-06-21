@@ -146,6 +146,16 @@ export const apiClient = {
       },
     },
   },
+
+  // Dynamic booking engine (DB-driven catalogue + question-based pricing).
+  catalog: {
+    getCategories: () => get('/categories'),
+    getCategoryServices: (slug) => get(`/categories/${slug}/services`),
+    getServices: () => get('/services'),
+    getService: (slug) => get(`/services/${slug}`),
+    calculate: (payload) => post('/bookings/calculate', payload),
+    createBooking: (payload) => post('/bookings/dynamic', payload),
+  },
 };
 
 export default apiClient;
