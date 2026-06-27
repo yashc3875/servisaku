@@ -23,6 +23,7 @@ import payoutsRouter from './routes/payouts.js';
 import chatRouter from './routes/chat.js';
 import notificationsRouter from './routes/notifications.js';
 import partnerLocationsRouter from './routes/partnerLocations.js';
+import partnersRouter from './routes/partners.js';
 import catalogRouter from './routes/catalog.js';
 
 const app = express();
@@ -57,6 +58,7 @@ api.use('/payouts', payoutsRouter);
 api.use('/chat', chatRouter);
 api.use('/notifications', notificationsRouter);
 api.use('/partner-locations', partnerLocationsRouter);
+api.use('/partners', partnersRouter);
 
 // /api stays the canonical mount; /api/v1 is the forward-compatible alias the
 // mobile clients will use (Phase 1 makes v1 canonical).

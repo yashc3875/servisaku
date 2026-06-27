@@ -1,6 +1,9 @@
 #env
 .env
 .env.*
+# build-target selectors (no secrets) — keep these tracked
+!.env.consumer
+!.env.partner
 
 # Logs
 /logs

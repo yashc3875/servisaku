@@ -49,7 +49,7 @@ export default function CategoryGrid() {
             <button
               key={cat.slug}
               type="button"
-              onClick={() => navigate(`/service/${cat.slug}`)}
+              onClick={() => navigate(`/catalog/${cat.slug}`)}
               className="group overflow-hidden rounded-lg border border-hairline/70 bg-white text-left shadow-e1 transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-e3"
             >
               <div className="relative aspect-[4/3] overflow-hidden bg-raised">

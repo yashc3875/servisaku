@@ -4,7 +4,10 @@
  * continues to work without any changes.
  */
 
-const BASE = '/api';
+// Relative '/api' in the browser (Vite/Netlify proxy); set VITE_API_BASE to an
+// absolute URL when building for the Capacitor app (the native webview can't use
+// a relative path). e.g. VITE_API_BASE="https://api.servisaku.com"
+const BASE = import.meta.env.VITE_API_BASE || '/api';
 
 // --- Token helpers ---
 const getToken = () => localStorage.getItem('auth_token');
@@ -70,6 +73,25 @@ class ApiEntity {
 
   async delete(id) {
     return request('DELETE', `${this.path}/${id}`);
+  }
+
+  // Booking-specific: a partner claims an unassigned job from the pool.
+  async claim(id) {
+    return request('POST', `${this.path}/${id}/claim`);
+  }
+
+  // Booking-specific: a partner uploads before/after service photos.
+  async addPhotos(id, payload) {
+    return request('POST', `${this.path}/${id}/photos`, payload);
+  }
+
+  // Booking-specific: partner proposes an extra service; customer decides on it.
+  async addExtra(id, payload) {
+    return request('POST', `${this.path}/${id}/extras`, payload);
+  }
+
+  async decideExtra(id, itemId, payload) {
+    return request('PATCH', `${this.path}/${id}/extras/${itemId}`, payload);
   }
 
   async filter(query = {}, orderBy = null, limit = null) {
@@ -155,6 +177,30 @@ export const apiClient = {
     getService: (slug) => get(`/services/${slug}`),
     calculate: (payload) => post('/bookings/calculate', payload),
     createBooking: (payload) => post('/bookings/dynamic', payload),
+  },
+
+  // Partner wallet (computed balance + withdrawals).
+  wallet: {
+    get: () => get('/payouts/wallet'),
+    withdraw: (amount) => post('/payouts/withdraw', { amount }),
+  },
+
+  // Partner availability config.
+  availability: {
+    get: () => get('/partners/me/availability'),
+    update: (payload) => patch('/partners/me/availability', payload),
+  },
+
+  // Partner verification documents (Malaysia).
+  documents: {
+    list: () => get('/partners/me/documents'),
+    submit: (payload) => post('/partners/me/documents', payload),
+  },
+
+  // Partner training center.
+  training: {
+    list: () => get('/partners/me/training'),
+    complete: (courseId, answers) => post(`/partners/me/training/${courseId}/complete`, { answers }),
   },
 };
 

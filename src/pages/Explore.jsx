@@ -8,7 +8,6 @@ import {
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { servisaku } from '@/api/servisakuClient';
-import { SERVICES_DISPLAY } from '@/lib/services';
 import { cn, formatMYR, formatDuration } from '@/lib/utils';
 import { Chip } from '@/components/primitives/Chip';
 import CategoryTiles from '@/components/CategoryTiles';
@@ -101,9 +100,7 @@ export default function Explore() {
   });
 
   const catNameBySlug = Object.fromEntries((liveCategories || []).map((c) => [c.slug, c.name]));
-  const services = liveServices?.length
-    ? liveServices.map((s) => mapService(s, catNameBySlug[s.category_slug]))
-    : SERVICES_DISPLAY;
+  const services = (liveServices || []).map((s) => mapService(s, catNameBySlug[s.category_slug]));
 
   const categoryChips = [
     { label: 'All', match: 'all' },
@@ -210,7 +207,7 @@ export default function Explore() {
               return (
                 <motion.div key={s.id} variants={staggerItem} whileHover={variants.pressable.whileHover} whileTap={variants.pressable.whileTap}>
                   <Link
-                    to={s.href || `/service/${s.id}`}
+                    to={s.href}
                     className="group flex items-center gap-4 rounded-lg border border-hairline/70 bg-white p-4 shadow-e1 transition-all hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-e3"
                   >
                     <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg sm:h-28 sm:w-28">
@@ -267,7 +264,7 @@ export default function Explore() {
               return (
                 <motion.div key={s.id} variants={staggerItem} whileHover={variants.pressable.whileHover} whileTap={variants.pressable.whileTap} className="h-full">
                   <Link
-                    to={s.href || `/service/${s.id}`}
+                    to={s.href}
                     className="group flex h-full flex-col overflow-hidden rounded-lg border border-hairline/70 bg-white shadow-e1 transition-all hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-e3"
                   >
                     {s.image ? (

@@ -187,7 +187,7 @@ export default function ServiceBooking() {
       </div>
 
       {/* Sticky footer: live total + nav */}
-      <div className="fixed inset-x-0 bottom-0 border-t border-hairline bg-surface/95 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-hairline bg-surface/95 backdrop-blur pb-[env(safe-area-inset-bottom)]">
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-4 px-4 py-3">
           <div>
             <div className="text-xs text-ink-secondary">Estimated total</div>

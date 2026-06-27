@@ -1,11 +1,27 @@
 // Server-authoritative pricing — Phase 1, DB-driven.
 // Reads ServicePackage + ServiceAddon + pricingConfig from the catalog tables
 // (seeded from the legacy JS catalog), so the catalog is the single source of
-// truth. The arithmetic still goes through calculatePrice() in the shared
-// bookingEngine so web/server/(future) mobile agree on the formula.
-import { calculatePrice } from '../../src/lib/bookingEngine.js';
+// truth.
 import { ApiError } from './access.js';
 import { resolveService } from './catalog.js';
+
+// Package-pricing arithmetic. Self-contained here so the server has no
+// dependency on the web bundle (the legacy browser engine that previously
+// exported this was removed when the dynamic engine became canonical).
+function calculatePrice(basePrice, pkgMultiplier, addons, coupon, surge = 1, sizeMultiplier = 1) {
+  const pkgPrice = Math.round(basePrice * pkgMultiplier * sizeMultiplier);
+  const addonTotal = addons.reduce((s, a) => s + a.price, 0);
+  const subtotal = Math.round((pkgPrice + addonTotal) * surge);
+  let discount = 0;
+  if (coupon) {
+    discount = coupon.discount_type === 'percentage'
+      ? Math.min(Math.round(subtotal * coupon.discount_value / 100), coupon.max_discount_cap || 999)
+      : coupon.discount_value;
+  }
+  const platformFee = Math.round(subtotal * 0.2);
+  const partnerPayout = subtotal - platformFee;
+  return { subtotal, discount, total: subtotal - discount, platformFee, partnerPayout, sizedBasePrice: pkgPrice };
+}
 
 // area_based services carry pricingConfig.tiers = [{ id, label, multiplier }].
 function sizeMultiplierFor(service, sizeId) {

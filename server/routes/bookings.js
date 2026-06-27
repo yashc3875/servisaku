@@ -29,6 +29,11 @@ function mapBookingOut(b) {
     // bookings store the flat param object directly.
     answers: b.details?.answers ?? b.details ?? null,
     price_breakdown: b.priceBreakdown ?? null,
+    photos: b.details?.photos ?? null,          // { before: [...], after: [...] }
+    lifecycle: b.lifecycle ?? null,             // [{ status, at, by }]
+    extras: (b.items || []).filter((i) => i.kind === 'addon').map((i) => ({
+      id: i.id, label: i.label, qty: i.qty, unit_price: i.unitPrice, total: i.total, status: i.status,
+    })),
     config_version: b.configVersion ?? null,
     price: b.price,
     date: b.date,
@@ -66,7 +71,11 @@ router.get('/', asyncHandler(async (req, res) => {
   } else if (req.user.role === 'partner') {
     // A partner may also be a consumer; an explicit consumer_email=self query
     // returns their own consumer-side bookings, otherwise assigned jobs.
-    if (req.query.consumer_email && req.query.consumer_email === req.user.email) {
+    // `available=true` returns the open job pool (unassigned + pending) to claim.
+    if (req.query.available === 'true') {
+      where.partnerId = null;
+      where.status = 'pending';
+    } else if (req.query.consumer_email && req.query.consumer_email === req.user.email) {
       where.consumerId = req.user.id;
     } else {
       where.partnerId = req.user.id;
@@ -89,7 +98,7 @@ router.get('/', asyncHandler(async (req, res) => {
 router.get('/:id', asyncHandler(async (req, res) => {
   const booking = await prisma.booking.findUnique({
     where: { id: req.params.id },
-    include: { consumer: true, partner: true },
+    include: { consumer: true, partner: true, items: true },
   });
   if (!booking) throw new ApiError(404, 'Booking not found');
   assertBookingParticipant(req.user, booking);
@@ -389,11 +398,119 @@ router.patch('/:id', validate(patchSchema), asyncHandler(async (req, res) => {
 
   if (Object.keys(data).length === 0) throw new ApiError(400, 'No permitted fields to update');
 
+  // Stamp every status transition onto the lifecycle timeline (server-authoritative).
+  if (data.status) {
+    const lifecycle = Array.isArray(booking.lifecycle) ? booking.lifecycle : [];
+    data.lifecycle = [...lifecycle, { status: data.status, at: new Date().toISOString(), by: req.user.id }];
+  }
+
   const updated = await prisma.booking.update({
     where: { id: booking.id },
     data,
     include: { consumer: true, partner: true },
   });
+  res.json(mapBookingOut(updated));
+}));
+
+// POST /api/bookings/:id/claim — a partner claims an unassigned pending booking
+// from the open job pool (lightweight dispatch: first to accept gets it).
+router.post('/:id/claim', asyncHandler(async (req, res) => {
+  if (req.user.role !== 'partner') throw new ApiError(403, 'Only partners can accept jobs');
+  const booking = await getBookingOr404(req.params.id);
+  if (booking.partnerId) throw new ApiError(409, 'This job has already been taken');
+  if (booking.status !== 'pending') throw new ApiError(400, 'This job is no longer open');
+  const updated = await prisma.booking.update({
+    where: { id: booking.id },
+    data: { partnerId: req.user.id, status: 'accepted' },
+    include: { consumer: true, partner: true },
+  });
+  res.json(mapBookingOut(updated));
+}));
+
+// POST /api/bookings/:id/photos — partner uploads before/after service photos.
+// Stored under details.photos.{before|after} with capture metadata, merged so
+// the dynamic-engine answers under details.answers are preserved.
+const photosSchema = z.object({
+  phase: z.enum(['before', 'after']),
+  photos: z.array(z.object({
+    url: z.string().min(1).max(2000),
+    at: z.string().datetime().optional(),
+    lat: z.number().optional(),
+    lng: z.number().optional(),
+  })).min(1).max(12),
+});
+router.post('/:id/photos', validate(photosSchema), asyncHandler(async (req, res) => {
+  const booking = await getBookingOr404(req.params.id);
+  assertBookingParticipant(req.user, booking);
+  if (!isAdmin(req.user) && booking.partnerId !== req.user.id) {
+    throw new ApiError(403, 'Only the assigned partner can upload service photos');
+  }
+  const { phase, photos } = req.body;
+  const details = (booking.details && typeof booking.details === 'object') ? booking.details : {};
+  const existing = details.photos || {};
+  const stamped = photos.map((p) => ({ ...p, at: p.at || new Date().toISOString() }));
+  const nextDetails = {
+    ...details,
+    photos: { ...existing, [phase]: [...(existing[phase] || []), ...stamped] },
+  };
+  const updated = await prisma.booking.update({
+    where: { id: booking.id },
+    data: { details: nextDetails },
+    include: { consumer: true, partner: true },
+  });
+  res.json(mapBookingOut(updated));
+}));
+
+// POST /api/bookings/:id/extras — partner proposes an extra service mid-job.
+// Created as a pending BookingItem (kind=addon); does NOT change the price until
+// the customer approves. No manual price negotiation.
+const extraSchema = z.object({
+  label: z.string().min(2).max(120),
+  unit_price: z.number().positive().max(100000),
+  qty: z.number().int().min(1).max(99).optional(),
+});
+router.post('/:id/extras', validate(extraSchema), asyncHandler(async (req, res) => {
+  const booking = await getBookingOr404(req.params.id);
+  assertBookingParticipant(req.user, booking);
+  if (!isAdmin(req.user) && booking.partnerId !== req.user.id) {
+    throw new ApiError(403, 'Only the assigned partner can add extras');
+  }
+  if (!['arrived', 'started'].includes(booking.status)) {
+    throw new ApiError(400, 'Extras can only be added during the job');
+  }
+  const qty = req.body.qty ?? 1;
+  const total = Math.round(req.body.unit_price * qty * 100) / 100;
+  await prisma.bookingItem.create({
+    data: { bookingId: booking.id, kind: 'addon', label: req.body.label, qty, unitPrice: req.body.unit_price, total, status: 'pending', addedBy: req.user.id },
+  });
+  const updated = await prisma.booking.findUnique({ where: { id: booking.id }, include: { consumer: true, partner: true, items: true } });
+  res.json(mapBookingOut(updated));
+}));
+
+// PATCH /api/bookings/:id/extras/:itemId — customer approves/rejects an extra.
+// On approval the addon is folded into the booking price + breakdown.
+const extraDecisionSchema = z.object({ status: z.enum(['approved', 'rejected']) });
+router.patch('/:id/extras/:itemId', validate(extraDecisionSchema), asyncHandler(async (req, res) => {
+  const booking = await getBookingOr404(req.params.id);
+  assertBookingParticipant(req.user, booking);
+  if (!isAdmin(req.user) && booking.consumerId !== req.user.id) {
+    throw new ApiError(403, 'Only the customer can approve or reject extras');
+  }
+  const item = await prisma.bookingItem.findUnique({ where: { id: req.params.itemId } });
+  if (!item || item.bookingId !== booking.id || item.kind !== 'addon') throw new ApiError(404, 'Extra not found');
+  if (item.status !== 'pending') throw new ApiError(400, 'This extra has already been decided');
+
+  const bookingData = {};
+  if (req.body.status === 'approved') {
+    const breakdown = Array.isArray(booking.priceBreakdown) ? booking.priceBreakdown : [];
+    bookingData.price = (booking.price || 0) + item.total;
+    bookingData.priceBreakdown = [...breakdown, { questionId: null, label: item.label, type: 'ADDON', qty: item.qty, amount: item.total }];
+  }
+  await prisma.$transaction([
+    prisma.bookingItem.update({ where: { id: item.id }, data: { status: req.body.status } }),
+    prisma.booking.update({ where: { id: booking.id }, data: bookingData }),
+  ]);
+  const updated = await prisma.booking.findUnique({ where: { id: booking.id }, include: { consumer: true, partner: true, items: true } });
   res.json(mapBookingOut(updated));
 }));
 

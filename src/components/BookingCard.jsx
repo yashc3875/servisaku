@@ -3,18 +3,16 @@ import { motion } from 'framer-motion';
 import { variants } from '@/lib/design/motion';
 import { CalendarDays, Clock, MapPin, ChevronRight } from 'lucide-react';
 import StatusBadge from './StatusBadge';
-import { SERVICES } from '@/lib/services';
 import moment from 'moment';
 
 export default function BookingCard({ booking }) {
-  const service = SERVICES.find(s => s.name === booking.service_type);
-  const Icon = service?.icon || CalendarDays;
+  const Icon = CalendarDays;
 
   return (
     <motion.div whileHover={variants.pressable.whileHover} whileTap={variants.pressable.whileTap}>
       <Link to={`/booking/${booking.id}`}
         className="flex items-center gap-3 bg-surface rounded-xl p-4 shadow-e1 hover:shadow-e2 transition-all duration-200 group">
-      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${service?.color || 'bg-muted text-muted-foreground'}`}>
+      <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-muted text-muted-foreground">
         <Icon className="h-5 w-5" />
       </div>
       <div className="flex-1 min-w-0">

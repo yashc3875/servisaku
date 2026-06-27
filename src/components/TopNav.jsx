@@ -1,129 +1,105 @@
-import { Link } from 'react-router-dom';
-import { MapPin, ShoppingCart, ChevronDown, LogOut, Globe, ShieldCheck } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { MapPin, ShoppingCart, ChevronDown, Search, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { servisaku } from '@/api/servisakuClient';
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/AuthContext';
-import { useLanguage } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/useTranslation';
 
 export default function TopNav() {
   const { user } = useAuth();
-  const { lang, setLang } = useLanguage();
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const toggleLang = () => setLang(lang === 'en' ? 'ms' : 'en');
+  const submitSearch = (e) => {
+    e.preventDefault();
+    navigate(`/explore${query.trim() ? `?q=${encodeURIComponent(query.trim())}` : ''}`);
+  };
 
   return (
-    <header 
+    <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-200 border-b",
-        scrolled ? "bg-white/95 backdrop-blur-md border-hairline/60 shadow-sm py-3" : "bg-white/95 border-transparent py-4"
+        'fixed top-0 left-0 right-0 z-50 border-b bg-white transition-all duration-200',
+        scrolled ? 'border-hairline/60 shadow-sm py-2.5' : 'border-hairline/40 py-3.5',
       )}
     >
-      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
-        
-        {/* Left: Logo */}
-        <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-          <div className="flex items-center justify-center">
-            <img src="/img/brand-logo.png" className="h-9 w-auto object-contain" alt="ServisAku Logo" />
-          </div>
-          <div className="flex flex-col justify-center min-w-0">
-            <p className="font-extrabold text-[24px] leading-none tracking-tight">
-              <span className="text-ink">Servis</span><span className="text-brand">Aku</span>
-            </p>
-            <p className="text-[6.5px] font-bold text-ink-secondary mt-1 tracking-wider uppercase">
-              {t('Community. Professional. Trusted.')}
-            </p>
-          </div>
+      <div className="mx-auto flex w-full max-w-7xl items-center gap-4 px-4 lg:gap-6 lg:px-6">
+
+        {/* Logo */}
+        <Link to="/" className="flex shrink-0 items-center">
+          <img src="/img/servisaku-logo.png" alt="ServisAku" className="h-8 w-auto object-contain lg:h-9" />
         </Link>
 
-        {/* Middle: Navigation Links */}
-        <nav className="hidden lg:flex items-center justify-center gap-4 xl:gap-8 flex-1 px-4 xl:px-8">
-          <Link to="/explore" className="text-sm font-semibold text-ink flex items-center gap-1 hover:text-brand transition-colors whitespace-nowrap">
-            {t('Service Categories')} <ChevronDown className="h-4 w-4" />
+        {/* Primary nav — Explore, Bookings */}
+        <nav className="hidden items-center gap-6 lg:flex">
+          <Link to="/explore" className="text-[15px] font-semibold text-ink hover:text-brand transition-colors">
+            {t('Explore')}
           </Link>
-          <Link to="/how-it-works" className="text-sm font-semibold text-ink hover:text-brand transition-colors whitespace-nowrap">
-            {t('How It Works')}
-          </Link>
-          <Link to="/business" className="text-sm font-semibold text-ink hover:text-brand transition-colors whitespace-nowrap">
-            {t('For Businesses')}
-          </Link>
-          <Link to="/promos" className="text-sm font-semibold text-ink hover:text-brand transition-colors whitespace-nowrap">
-            {t('Promotions')}
-          </Link>
-          <Link to="/help" className="text-sm font-semibold text-ink hover:text-brand transition-colors whitespace-nowrap">
-            {t('Help')}
+          <Link to="/bookings" className="text-[15px] font-semibold text-ink hover:text-brand transition-colors">
+            {t('Bookings')}
           </Link>
         </nav>
 
-        {/* Right: Actions */}
-        <div className="flex items-center gap-3 lg:gap-4 xl:gap-6 flex-shrink-0">
-          {/* Language Toggle — always visible */}
+        {/* Location + Search (UC-style), grows to fill */}
+        <div className="hidden flex-1 items-center gap-3 md:flex">
           <button
-            onClick={toggleLang}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-hairline/60 bg-white hover:bg-raised transition-colors text-ink-secondary hover:text-ink flex-shrink-0"
-            aria-label="Switch language"
+            type="button"
+            onClick={() => navigate('/explore?loc=Kuala%20Lumpur')}
+            className="flex shrink-0 items-center gap-2 rounded-xl border border-hairline bg-white px-3 py-2.5 text-ink hover:bg-raised transition-colors"
           >
-            <Globe className="h-4 w-4" />
-            <span className="text-xs font-bold uppercase tracking-wide">{lang === 'en' ? 'BM' : 'EN'}</span>
+            <MapPin className="h-4 w-4 text-success" />
+            <span className="max-w-[120px] truncate text-sm font-medium">Kuala Lumpur</span>
+            <ChevronDown className="h-4 w-4 text-ink-tertiary" />
           </button>
 
-          <div className="hidden lg:flex items-center gap-4 xl:gap-6">
-            <Link to="/explore?loc=Kuala%20Lumpur" className="hidden xl:flex items-center gap-1.5 rounded-lg border border-hairline/60 bg-white px-3 py-2 text-ink-secondary hover:text-ink cursor-pointer transition-colors whitespace-nowrap">
-              <MapPin className="h-4 w-4 text-success" />
-              <span className="text-sm font-semibold">Kuala Lumpur</span>
-            </Link>
-
-            <Link to="/partner/onboarding" className="hidden 2xl:flex items-center gap-1.5 rounded-lg bg-success-tint px-3 py-2 text-sm font-bold text-success whitespace-nowrap">
-              <ShieldCheck className="h-4 w-4" />
-              {t('Become a Pro')}
-            </Link>
-
-            <Link to="/cart" className="relative text-ink-secondary hover:text-ink transition-colors flex-shrink-0">
-              <ShoppingCart className="h-5 w-5" />
-              <span className="absolute -top-2 -right-2 bg-brand text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-surface">
-                2
-              </span>
-            </Link>
-
-            <div className="flex items-center gap-3">
-              {user ? (
-                <div className="flex items-center gap-4">
-                  <Link to="/profile" className="flex items-center gap-2 text-sm font-semibold text-ink hover:text-brand transition-colors whitespace-nowrap">
-                    <div className="w-8 h-8 rounded-full bg-brand-tint flex items-center justify-center text-brand font-bold flex-shrink-0">
-                      {user.full_name?.charAt(0)}
-                    </div>
-                    {user.full_name?.split(' ')[0]}
-                  </Link>
-                  <button onClick={() => servisaku.auth.logout()} className="text-ink-secondary hover:text-danger transition-colors flex-shrink-0">
-                    <LogOut className="h-4 w-4" />
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <Button variant="outline" className="border-hairline/60 bg-white hover:bg-raised text-sm font-bold rounded-lg px-4 xl:px-5 h-10 whitespace-nowrap" onClick={() => servisaku.auth.redirectToLogin()}>
-                    {t('Log In')}
-                  </Button>
-                  <Button className="bg-brand text-white hover:bg-brand/90 text-sm font-bold rounded-lg px-4 xl:px-5 h-10 shadow-sm whitespace-nowrap" onClick={() => servisaku.auth.redirectToLogin()}>
-                    {t('Sign Up')}
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
+          <form onSubmit={submitSearch} className="relative flex-1">
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t("Search for 'AC service'")}
+              className="w-full rounded-xl border border-hairline bg-white py-2.5 pl-11 pr-4 text-sm text-ink outline-none placeholder:text-ink-tertiary focus:ring-2 focus:ring-brand/30"
+            />
+          </form>
         </div>
 
+        {/* Right: cart + account */}
+        <div className="flex shrink-0 items-center gap-2 lg:gap-4">
+          <Link
+            to="/cart"
+            aria-label="Cart"
+            className="relative flex h-10 w-10 items-center justify-center rounded-full border border-hairline bg-white text-ink hover:bg-raised transition-colors"
+          >
+            <ShoppingCart className="h-5 w-5" />
+          </Link>
+
+          {user ? (
+            <Link
+              to="/profile"
+              aria-label="Account"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-hairline bg-white text-ink hover:bg-raised transition-colors"
+            >
+              {user.full_name
+                ? <span className="text-sm font-bold text-brand">{user.full_name.charAt(0).toUpperCase()}</span>
+                : <User className="h-5 w-5" />}
+            </Link>
+          ) : (
+            <Link
+              to="/otp-login"
+              aria-label="Log in"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-hairline bg-white text-ink hover:bg-raised transition-colors"
+            >
+              <User className="h-5 w-5" />
+            </Link>
+          )}
+        </div>
       </div>
     </header>
   );

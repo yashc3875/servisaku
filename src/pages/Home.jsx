@@ -14,11 +14,23 @@ import {
   WalletCards,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { safeMotion, variants } from '@/lib/design/motion';
 import { HeroSearch } from '@/components/home/HeroSearch';
 import CategoryGrid from '@/components/home/CategoryGrid';
+import VideoReels from '@/components/home/VideoReels';
 import { TrustStrip } from '@/components/home/TrustStrip';
 import { useTranslation } from '@/lib/useTranslation';
+import { servisaku } from '@/api/servisakuClient';
+import { serviceImageFor } from '@/lib/serviceImages';
+import { formatMYR } from '@/lib/utils';
+
+// Curated picks surfaced first in "Popular around Malaysia" (fall back to others).
+const POPULAR_SLUGS = [
+  'full-house-cleaning', 'ac-servicing', 'tap-repair-replacement',
+  'interior-painting', 'fan-installation', 'cockroach-control',
+];
+const prettyCategory = (slug = '') => slug.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
 const serviceBundles = [
   {
@@ -56,6 +68,20 @@ const bookingSteps = [
 export default function Home() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+
+  // Live services for "Popular around Malaysia" — curated picks first, then fill to 12.
+  const { data: allServices } = useQuery({
+    queryKey: ['home-popular-services'],
+    queryFn: () => servisaku.catalog.getServices(),
+    staleTime: 5 * 60 * 1000,
+  });
+  const popular = (() => {
+    if (!allServices?.length) return [];
+    const bySlug = Object.fromEntries(allServices.map((s) => [s.slug, s]));
+    const picked = POPULAR_SLUGS.map((sl) => bySlug[sl]).filter(Boolean);
+    const rest = allServices.filter((s) => !POPULAR_SLUGS.includes(s.slug));
+    return [...picked, ...rest].slice(0, 12);
+  })();
 
   return (
     <motion.div
@@ -160,6 +186,8 @@ export default function Home() {
       <main className="mx-auto flex max-w-7xl flex-col gap-12 px-5 py-10 md:px-8 md:py-14">
         <CategoryGrid />
 
+        <VideoReels />
+
         <section>
           <div className="mb-5 flex items-end justify-between gap-4">
             <div>
@@ -175,26 +203,50 @@ export default function Home() {
             </button>
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-3">
-            {serviceBundles.map((bundle) => (
-              <button
-                key={bundle.title}
-                type="button"
-                onClick={() => navigate('/explore')}
-                className="group grid grid-cols-[112px_1fr] overflow-hidden rounded-lg border border-hairline/70 bg-white text-left shadow-e1 transition-all hover:-translate-y-0.5 hover:shadow-e3 sm:grid-cols-[140px_1fr]"
-              >
-                <img src={bundle.image} alt={bundle.title} className="h-full min-h-36 w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                <div className="flex min-w-0 flex-col p-4">
-                  <span className="mb-3 w-max rounded-full bg-brand-tint px-2.5 py-1 text-[11px] font-bold text-brand">{t(bundle.badge)}</span>
-                  <h3 className="text-base font-extrabold leading-tight text-ink">{t(bundle.title)}</h3>
-                  <p className="mt-2 line-clamp-2 text-xs font-medium leading-5 text-ink-secondary">{t(bundle.description)}</p>
-                  <div className="mt-auto flex items-center justify-between pt-4">
-                    <span className="text-sm font-bold text-ink-secondary">{t('From')} <strong className="text-brand">{bundle.price}</strong></span>
-                    <ArrowRight className="size-4 text-ink-tertiary transition-transform group-hover:translate-x-1 group-hover:text-brand" />
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {(popular.length ? popular : null)
+              ? popular.map((s) => (
+                <button
+                  key={s.slug}
+                  type="button"
+                  onClick={() => navigate(`/book-service/${s.slug}`)}
+                  className="group grid grid-cols-[112px_1fr] overflow-hidden rounded-lg border border-hairline/70 bg-white text-left shadow-e1 transition-all hover:-translate-y-0.5 hover:shadow-e3 sm:grid-cols-[140px_1fr]"
+                >
+                  <img
+                    src={serviceImageFor(s.slug) || '/img/cleaning-card.jpg'}
+                    alt={s.name}
+                    className="h-full min-h-36 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="flex min-w-0 flex-col p-4">
+                    <span className="mb-3 w-max rounded-full bg-brand-tint px-2.5 py-1 text-[11px] font-bold text-brand">{prettyCategory(s.category_slug)}</span>
+                    <h3 className="text-base font-extrabold leading-tight text-ink">{s.name}</h3>
+                    <p className="mt-2 line-clamp-2 text-xs font-medium leading-5 text-ink-secondary">{s.description || `${prettyCategory(s.category_slug)} · book in a few taps`}</p>
+                    <div className="mt-auto flex items-center justify-between pt-4">
+                      <span className="text-sm font-bold text-ink-secondary">{t('From')} <strong className="text-brand">{formatMYR(Math.round(s.price_from > 0 ? s.price_from : s.visit_fee))}</strong></span>
+                      <ArrowRight className="size-4 text-ink-tertiary transition-transform group-hover:translate-x-1 group-hover:text-brand" />
+                    </div>
                   </div>
-                </div>
-              </button>
-            ))}
+                </button>
+              ))
+              : serviceBundles.map((bundle) => (
+                <button
+                  key={bundle.title}
+                  type="button"
+                  onClick={() => navigate('/explore')}
+                  className="group grid grid-cols-[112px_1fr] overflow-hidden rounded-lg border border-hairline/70 bg-white text-left shadow-e1 transition-all hover:-translate-y-0.5 hover:shadow-e3 sm:grid-cols-[140px_1fr]"
+                >
+                  <img src={bundle.image} alt={bundle.title} className="h-full min-h-36 w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <div className="flex min-w-0 flex-col p-4">
+                    <span className="mb-3 w-max rounded-full bg-brand-tint px-2.5 py-1 text-[11px] font-bold text-brand">{t(bundle.badge)}</span>
+                    <h3 className="text-base font-extrabold leading-tight text-ink">{t(bundle.title)}</h3>
+                    <p className="mt-2 line-clamp-2 text-xs font-medium leading-5 text-ink-secondary">{t(bundle.description)}</p>
+                    <div className="mt-auto flex items-center justify-between pt-4">
+                      <span className="text-sm font-bold text-ink-secondary">{t('From')} <strong className="text-brand">{bundle.price}</strong></span>
+                      <ArrowRight className="size-4 text-ink-tertiary transition-transform group-hover:translate-x-1 group-hover:text-brand" />
+                    </div>
+                  </div>
+                </button>
+              ))}
           </div>
         </section>
 

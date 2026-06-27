@@ -16,18 +16,26 @@ import { toast } from 'sonner';
 const STEP = { ROLE: 'role', INPUT: 'input', OTP: 'otp', DONE: 'done' };
 const MODE = { EMAIL: 'email', PHONE: 'phone' };
 
-const ROLES = [
-  { id: 'consumer', label: 'Consumer', desc: 'Book home services', emoji: '🏠' },
-  { id: 'partner', label: 'Service Partner', desc: 'Provide services & earn', emoji: '🔧' },
-  { id: 'admin', label: 'Admin', desc: 'Manage the platform', emoji: '⚙️' },
-];
+const ALL_ROLES = {
+  consumer: { id: 'consumer', label: 'Consumer', desc: 'Book home services', emoji: '🏠' },
+  partner: { id: 'partner', label: 'Service Partner', desc: 'Provide services & earn', emoji: '🔧' },
+  admin: { id: 'admin', label: 'Admin', desc: 'Manage the platform', emoji: '⚙️' },
+};
+
+// Each build only signs people into the roles it actually serves.
+const APP_TARGET = import.meta.env.VITE_APP === 'partner' ? 'partner' : 'consumer';
+const APP_ROLES = APP_TARGET === 'partner'
+  ? [ALL_ROLES.partner, ALL_ROLES.admin]
+  : [ALL_ROLES.consumer];
+// With a single role there's nothing to choose — skip straight to sign-in.
+const SHOW_ROLE_STEP = APP_ROLES.length > 1;
 
 export default function OTPLogin() {
   const navigate = useNavigate();
   const { checkUserAuth } = useAuth();
-  const [step, setStep] = useState(STEP.ROLE);
+  const [step, setStep] = useState(SHOW_ROLE_STEP ? STEP.ROLE : STEP.INPUT);
   const [mode, setMode] = useState(MODE.EMAIL);
-  const [role, setRole] = useState('consumer');
+  const [role, setRole] = useState(APP_ROLES[0].id);
   const [isRegister, setIsRegister] = useState(false);
 
   // Email/password fields
@@ -212,7 +220,7 @@ export default function OTPLogin() {
                   </div>
                   
                   <div className="space-y-4 mb-8">
-                    {ROLES.map(r => (
+                    {APP_ROLES.map(r => (
                       <button key={r.id} onClick={() => setRole(r.id)}
                         className={`w-full flex items-center gap-5 p-5 rounded-2xl border-2 transition-all ${role === r.id ? 'border-brand bg-brand-tint/20 shadow-sm' : 'border-hairline/20 bg-surface hover:border-hairline/60 hover:shadow-sm'}`}>
                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${role === r.id ? 'bg-brand/10' : 'bg-raised'}`}>
@@ -238,9 +246,11 @@ export default function OTPLogin() {
               {/* STEP 2: Login method */}
               {step === STEP.INPUT && (
                 <div>
-                  <button onClick={() => setStep(STEP.ROLE)} className="flex items-center gap-1.5 text-sm font-medium text-ink-secondary mb-8 hover:text-ink transition-colors">
-                    <ArrowLeft className="h-4 w-4" /> Back to roles
-                  </button>
+                  {SHOW_ROLE_STEP && (
+                    <button onClick={() => setStep(STEP.ROLE)} className="flex items-center gap-1.5 text-sm font-medium text-ink-secondary mb-8 hover:text-ink transition-colors">
+                      <ArrowLeft className="h-4 w-4" /> Back to roles
+                    </button>
+                  )}
 
                   <div className="mb-8">
                     <h2 className="text-3xl font-display font-bold mb-2 text-ink">
@@ -315,9 +325,14 @@ export default function OTPLogin() {
                         <div className="mt-8 bg-blue-50/50 border border-blue-100 rounded-xl p-4 text-xs text-blue-800">
                           <div className="font-semibold mb-2 flex items-center gap-1.5"><Shield className="h-3.5 w-3.5"/> Demo Credentials</div>
                           <div className="grid grid-cols-2 gap-2 font-mono text-[11px]">
-                            <div>User: <span className="font-medium text-blue-900">user@servisaku.my</span><br/>Pass: user123</div>
-                            <div>Admin: <span className="font-medium text-blue-900">admin@servisaku.my</span><br/>Pass: admin123</div>
-                            <div className="col-span-2">Partner: <span className="font-medium text-blue-900">ali@servisaku.my</span> / partner123</div>
+                            {APP_TARGET === 'partner' ? (
+                              <>
+                                <div>Partner: <span className="font-medium text-blue-900">ali@servisaku.my</span><br/>Pass: partner123</div>
+                                <div>Admin: <span className="font-medium text-blue-900">admin@servisaku.my</span><br/>Pass: admin123</div>
+                              </>
+                            ) : (
+                              <div className="col-span-2">User: <span className="font-medium text-blue-900">user@servisaku.my</span> / user123</div>
+                            )}
                           </div>
                         </div>
                       )}

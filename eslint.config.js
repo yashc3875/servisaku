@@ -5,6 +5,8 @@ import pluginReactHooks from "eslint-plugin-react-hooks";
 import pluginUnusedImports from "eslint-plugin-unused-imports";
 
 export default [
+  // Global ignores: generated builds + the separate native app/mobile projects.
+  { ignores: ["dist/**", "servisaku-app/**", "servisaku-mobile/**", "**/android/**", "**/ios/**"] },
   {
     files: [
       "src/components/**/*.{js,mjs,cjs,jsx}",

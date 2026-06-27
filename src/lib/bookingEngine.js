@@ -1,4 +1,6 @@
-// FixMate Booking State Machine
+// ServisAku booking status state machine + post-booking shared constants.
+// (Pricing/quoting now lives entirely in the dynamic engine: server-side
+// `dynamicPricing.js` via POST /api/bookings/calculate.)
 
 export const STATUS_TRANSITIONS = {
   pending:    ['assigned', 'cancelled'],
@@ -30,31 +32,6 @@ export const SLOT_GROUPS = {
   Evening:   { label: 'Evening',   sub: '4 PM – 7 PM',  emoji: '🌇', slots: ['4:00 PM', '5:00 PM', '6:00 PM'] },
 };
 
-export const PROPERTY_TYPES = ['Apartment', 'Condo', 'Terrace House', 'Semi-D', 'Bungalow', 'Office'];
-
-export const BEDROOM_OPTIONS = [
-  { label: 'Studio',      value: 'studio',  multiplier: 0.8 },
-  { label: '1 Bedroom',   value: '1br',     multiplier: 0.9 },
-  { label: '2 Bedrooms',  value: '2br',     multiplier: 1.0 },
-  { label: '3 Bedrooms',  value: '3br',     multiplier: 1.3 },
-  { label: '4 Bedrooms',  value: '4br',     multiplier: 1.6 },
-  { label: '5+ Bedrooms', value: '5br',     multiplier: 2.0 },
-];
-
-// Categories where price scales with property size (area-based services)
-export const AREA_SCALED_CATEGORIES = ['home-cleaning', 'cleaning', 'painting', 'pest-control'];
-
-export function getSizeMultiplier(bedroomValue) {
-  const opt = BEDROOM_OPTIONS.find(b => b.value === bedroomValue);
-  return opt ? opt.multiplier : 1.0;
-}
-
-export function isAreaScaled(serviceId) {
-  const norm = serviceId === 'home-cleaning' ? 'cleaning' :
-               serviceId === 'ac-servicing' ? 'ac' : serviceId;
-  return AREA_SCALED_CATEGORIES.includes(norm) || AREA_SCALED_CATEGORIES.includes(serviceId);
-}
-
 export function canTransition(from, to) {
   return STATUS_TRANSITIONS[from]?.includes(to) || false;
 }
@@ -68,21 +45,6 @@ export function isRefundEligible(booking) {
   const hoursUntilService = (new Date(booking.date) - new Date()) / 3600000;
   if (['pending', 'assigned'].includes(booking.status) && hoursUntilService > 4) return true;
   return false;
-}
-
-export function calculatePrice(basePrice, pkgMultiplier, addons, coupon, surge = 1, sizeMultiplier = 1) {
-  const pkgPrice = Math.round(basePrice * pkgMultiplier * sizeMultiplier);
-  const addonTotal = addons.reduce((s, a) => s + a.price, 0);
-  const subtotal = Math.round((pkgPrice + addonTotal) * surge);
-  let discount = 0;
-  if (coupon) {
-    discount = coupon.discount_type === 'percentage'
-      ? Math.min(Math.round(subtotal * coupon.discount_value / 100), coupon.max_discount_cap || 999)
-      : coupon.discount_value;
-  }
-  const platformFee = Math.round(subtotal * 0.2);
-  const partnerPayout = subtotal - platformFee;
-  return { subtotal, discount, total: subtotal - discount, platformFee, partnerPayout, sizedBasePrice: pkgPrice };
 }
 
 export function getNextStatuses(status) {

@@ -46,6 +46,30 @@ class MockEntity {
     return data[index];
   }
 
+  async claim(id) {
+    return this.update(id, { status: 'accepted' });
+  }
+
+  async addPhotos(id, { phase, photos }) {
+    const cur = await this.get(id);
+    const existing = cur?.photos || {};
+    return this.update(id, { photos: { ...existing, [phase]: [...(existing[phase] || []), ...photos] } });
+  }
+
+  async addExtra(id, { label, unit_price, qty = 1 }) {
+    const cur = await this.get(id);
+    const extras = [...(cur?.extras || []), { id: `extra_${Date.now()}`, label, unit_price, qty, total: unit_price * qty, status: 'pending' }];
+    return this.update(id, { extras });
+  }
+
+  async decideExtra(id, itemId, { status }) {
+    const cur = await this.get(id);
+    const extras = (cur?.extras || []).map((e) => e.id === itemId ? { ...e, status } : e);
+    const approved = (cur?.extras || []).find((e) => e.id === itemId && status === 'approved');
+    const price = approved ? (cur.price || 0) + approved.total : cur.price;
+    return this.update(id, { extras, price });
+  }
+
   async delete(id) {
     await delay(200);
     const data = this._getData();
@@ -253,5 +277,32 @@ export const mockClient = {
     async getService() { throw new Error('Live booking requires the backend (demo mode)'); },
     async calculate() { throw new Error('Live pricing requires the backend (demo mode)'); },
     async createBooking() { throw new Error('Booking requires the backend (demo mode)'); },
+  },
+
+  wallet: {
+    async get() { return { lifetime: 0, pending: 0, withdrawn: 0, withdrawable: 0, balance: 0, currency: 'MYR' }; },
+    async withdraw() { throw new Error('Withdrawals require the backend (demo mode)'); },
+  },
+
+  availability: {
+    async get() {
+      return {
+        working_days: [1, 2, 3, 4, 5], start_time: '09:00', end_time: '18:00',
+        lunch: { enabled: false, start: '13:00', end: '14:00' },
+        vacation_mode: false, instant_booking: true, max_daily_jobs: 6,
+        coverage_radius_km: 10, preferred_areas: [], preferred_categories: [], unavailable_dates: [],
+      };
+    },
+    async update(payload) { return payload; },
+  },
+
+  documents: {
+    async list() { return { documents: [], required_total: 0, required_verified: 0, progress: 100, activated: false }; },
+    async submit() { throw new Error('Document upload requires the backend (demo mode)'); },
+  },
+
+  training: {
+    async list() { return { courses: [], total: 0, completed: 0, mandatory_total: 0, mandatory_completed: 0, certified: false, progress: 0 }; },
+    async complete() { throw new Error('Training requires the backend (demo mode)'); },
   },
 };

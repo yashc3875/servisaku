@@ -1,0 +1,23 @@
+{
+  "appId": "com.servisaku.app",
+  "appName": "ServisAku",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https",
+    "url": "http://localhost:5173",
+    "cleartext": true
+  },
+  "backgroundColor": "#ffffff",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1200,
+      "backgroundColor": "#ffffff",
+      "showSpinner": false,
+      "androidScaleType": "CENTER_CROP"
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#ffffff"
+    }
+  }
+}

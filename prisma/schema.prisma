@@ -37,6 +37,7 @@ model User {
   partnerRating   Float?
   partnerCategory String?
   bankAccount     String?
+  availability    Json? // partner availability config (working days/hours, vacation, radius, …)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -45,8 +46,47 @@ model User {
   reviews            Review[]
   notifications      Notification[]
   specializations    PartnerSpecialization[]
+  documents          PartnerDocument[]
+  training           TrainingProgress[]
 
   @@index([role, partnerVerified])
+}
+
+// Per-partner training progress (course catalogue is authored in code).
+model TrainingProgress {
+  id          String    @id @default(cuid())
+  partnerId   String
+  courseId    String
+  status      String    @default("completed") // in_progress | completed
+  score       Int?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  partner User @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerId, courseId])
+  @@index([partnerId])
+}
+
+// Partner KYC / compliance documents (Malaysia). One row per submitted doc type.
+model PartnerDocument {
+  id              String    @id @default(cuid())
+  partnerId       String
+  type            String // mykad | selfie | skill_cert | insurance | bank | ssm | driving_licence | lhdn
+  status          String    @default("pending") // pending | verified | rejected | expired
+  fileUrl         String?
+  number          String? // IC / SSM / licence / tax number
+  expiryDate      DateTime?
+  rejectionReason String?
+  verifiedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  partner User @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerId, type])
+  @@index([partnerId])
 }
 
 model Booking {
@@ -88,6 +128,7 @@ model Booking {
   review         Review?
   refundRequests RefundRequest[]
   chatMessages   ChatMessage[]
+  payments       Payment[]
 
   @@index([consumerId, status])
   @@index([partnerId, status])
@@ -120,6 +161,40 @@ model Review {
 
   booking Booking @relation(fields: [bookingId], references: [id])
   user    User    @relation(fields: [userId], references: [id])
+}
+
+// ─── Payments (gateway abstraction: mock | billplz) ─────────────────────────
+model Payment {
+  id          String    @id @default(cuid())
+  bookingId   String
+  amount      Float
+  currency    String    @default("MYR")
+  method      String // fpx | card | tng | grabpay | boost | cash
+  provider    String    @default("mock") // mock | billplz
+  status      String    @default("pending") // pending | paid | failed | refunded
+  gatewayRef  String? // gateway bill / transaction id
+  checkoutUrl String? // hosted checkout URL (real gateways)
+  paidAt      DateTime?
+  raw         Json? // gateway payload snapshot
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@index([gatewayRef])
+}
+
+// Idempotency ledger for gateway webhooks — a given (provider,eventId) is processed once.
+model WebhookEvent {
+  id          String   @id @default(cuid())
+  provider    String
+  eventId     String
+  type        String?
+  payload     Json?
+  processedAt DateTime @default(now())
+
+  @@unique([provider, eventId])
 }
 
 model EscrowLedger {
@@ -225,6 +300,8 @@ model BookingItem {
   qty       Int     @default(1)
   unitPrice Float
   total     Float
+  status    String  @default("approved") // approved | pending | rejected — mid-job extras await customer approval
+  addedBy   String? // user id who proposed the item (partner, for extras)
 
   booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 

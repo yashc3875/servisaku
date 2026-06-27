@@ -18,7 +18,8 @@ async function detectServer() {
   if (detecting) return;
   detecting = true;
   try {
-    const res = await fetch('/api/health', { signal: AbortSignal.timeout(3000) });
+    const apiBase = import.meta.env.VITE_API_BASE || '/api';
+    const res = await fetch(`${apiBase}/health`, { signal: AbortSignal.timeout(3000) });
     const contentType = res.headers.get('content-type') || '';
     // Only trust a real JSON response — Netlify SPA redirect returns HTML
     if (!res.ok || !contentType.includes('application/json')) throw new Error('not json');

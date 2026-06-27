@@ -1,0 +1,18 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "partner",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:partner"],
+      "port": 5174,
+      "autoPort": false
+    },
+    {
+      "name": "consumer",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:consumer"],
+      "port": 5173
+    }
+  ]
+}

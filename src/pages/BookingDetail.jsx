@@ -7,8 +7,8 @@ import {
 import { servisaku } from '@/api/servisakuClient';
 import StatusBadge from '../components/StatusBadge';
 import BookingTimeline from '../components/BookingTimeline';
-import { SERVICES } from '@/lib/services';
 import { isRefundEligible, formatBookingRef, STATUS_META } from '@/lib/bookingEngine';
+import { ExtraServices } from '@/components/ExtraServices';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import moment from 'moment';
@@ -21,6 +21,7 @@ export default function BookingDetail() {
   const [reviewText, _setReviewText] = useState('');
   const [showCancel, setShowCancel] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  const [decidingExtra, setDecidingExtra] = useState(false);
 
   useEffect(() => {
     servisaku.entities.Booking.get(bookingId).then(setBooking);
@@ -37,8 +38,7 @@ export default function BookingDetail() {
     </div>
   );
 
-  const service = SERVICES.find(s => s.name === booking.service_type);
-  const Icon = service?.icon || CalendarDays;
+  const Icon = CalendarDays;
   const canCancel = ['pending', 'assigned'].includes(booking.status);
   const canReview = booking.status === 'completed' && !booking.rating;
   const refundEligible = isRefundEligible(booking);
@@ -54,6 +54,21 @@ export default function BookingDetail() {
     setShowCancel(false);
     toast.success('Booking cancelled');
   };
+
+  const handleDecideExtra = async (itemId, status) => {
+    setDecidingExtra(true);
+    try {
+      const res = await servisaku.entities.Booking.decideExtra(booking.id, itemId, { status });
+      setBooking(b => ({ ...b, extras: res.extras, price: res.price }));
+      toast.success(status === 'approved' ? 'Extra approved — added to your bill' : 'Extra declined');
+    } catch (e) {
+      toast.error(e.message || 'Could not update');
+    } finally {
+      setDecidingExtra(false);
+    }
+  };
+
+  const pendingExtras = (booking?.extras || []).filter(e => e.status === 'pending');
 
   const _handleReview = async () => {
     if (!rating) return toast.error('Please select a rating');
@@ -71,7 +86,7 @@ export default function BookingDetail() {
     toast.success('Review submitted!');
   };
 
-  const handleRebook = () => navigate(`/book/${service?.id || 'home-cleaning'}`);
+  const handleRebook = () => navigate('/explore');
 
   return (
     <div className="font-inter bg-bg min-h-screen" style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom))' }}>
@@ -95,7 +110,7 @@ export default function BookingDetail() {
         {/* Service + Price Card */}
         <div className="bg-surface rounded-3xl border border-hairline/10 shadow-e1 p-4">
           <div className="flex items-center gap-3 mb-4">
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${service?.color || 'bg-raised'}`}>
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 bg-raised">
               <Icon className="h-7 w-7" />
             </div>
             <div className="flex-1">
@@ -144,6 +159,22 @@ export default function BookingDetail() {
           </div>
         )}
 
+        {/* Extra services — partner-proposed, customer approves */}
+        {booking.extras?.length > 0 && (
+          <div className="bg-surface rounded-3xl border border-hairline/10 shadow-e1 p-4">
+            <p className="text-xs text-ink-secondary font-medium mb-1">Extra services</p>
+            {pendingExtras.length > 0 && (
+              <p className="text-[11px] text-amber-600 mb-3">Your partner proposed extra work — approve to add it to your bill.</p>
+            )}
+            <ExtraServices
+              extras={booking.extras}
+              mode="consumer"
+              onDecide={handleDecideExtra}
+              busy={decidingExtra}
+            />
+          </div>
+        )}
+
         {/* Partner Card */}
         {booking.partner_name && (
           <div className="bg-surface rounded-3xl border border-hairline/10 shadow-e1 p-4">
@@ -162,10 +193,15 @@ export default function BookingDetail() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <button className="w-9 h-9 rounded-xl bg-raised flex items-center justify-center hover:bg-brand-tint transition-colors">
+                <button
+                  onClick={() => navigate(`/chat/${booking.id}`)}
+                  aria-label="Call partner"
+                  className="w-9 h-9 rounded-xl bg-raised flex items-center justify-center hover:bg-brand-tint transition-colors">
                   <Phone className="h-4 w-4 text-ink-secondary" />
                 </button>
-                <button onClick={() => toast.info('Chat coming soon!')}
+                <button
+                  onClick={() => navigate(`/chat/${booking.id}`)}
+                  aria-label="Message partner"
                   className="w-9 h-9 rounded-xl bg-raised flex items-center justify-center hover:bg-brand-tint transition-colors">
                   <MessageSquare className="h-4 w-4 text-ink-secondary" />
                 </button>

@@ -15,10 +15,11 @@ export function ServiceCard({
   const navigate = useNavigate();
 
   const handleClick = () => {
+    // Category-shaped → dynamic catalogue; service-shaped → dynamic booking wizard.
     if (service.subcategories) {
-      navigate(`/category/${service.slug}`);
+      navigate(`/catalog/${service.slug}`);
     } else {
-      navigate(`/service/${service.id || service.slug}`);
+      navigate(`/book-service/${service.slug || service.id}`);
     }
   };
 

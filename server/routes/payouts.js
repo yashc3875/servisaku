@@ -85,4 +85,60 @@ router.patch('/:id', requireRole('admin', 'super_admin'), validate(patchSchema),
   res.json((await mapManyOut([item]))[0]);
 }));
 
+// ─── Partner wallet ──────────────────────────────────────────────────────────
+// Earnings are computed from completed bookings (partner keeps 80%; 20% platform
+// fee). Requested/paid PayoutRecords reduce the withdrawable balance. (Escrow
+// release is an admin action and not relied on here.)
+const PARTNER_RATE = 0.8;
+const payoutOf = (price) => Math.round((price || 0) * PARTNER_RATE);
+
+async function computeWallet(partnerId) {
+  const [completed, active, payouts] = await Promise.all([
+    prisma.booking.findMany({ where: { partnerId, status: 'completed' }, select: { price: true } }),
+    prisma.booking.findMany({ where: { partnerId, status: { in: ['accepted', 'en_route', 'arrived', 'started'] } }, select: { price: true } }),
+    prisma.payoutRecord.findMany({ where: { partnerId }, select: { netPayout: true, status: true } }),
+  ]);
+  const lifetime = completed.reduce((s, b) => s + payoutOf(b.price), 0);
+  const pending = active.reduce((s, b) => s + payoutOf(b.price), 0);
+  const withdrawn = payouts
+    .filter((p) => ['pending', 'scheduled', 'completed'].includes(p.status))
+    .reduce((s, p) => s + (p.netPayout || 0), 0);
+  const withdrawable = Math.max(0, lifetime - withdrawn);
+  return { lifetime, pending, withdrawn, withdrawable, balance: withdrawable, currency: 'MYR' };
+}
+
+// GET /api/payouts/wallet — the caller-partner's computed wallet summary.
+router.get('/wallet', asyncHandler(async (req, res) => {
+  if (req.user.role !== 'partner' && !isAdmin(req.user)) throw new ApiError(403, 'Partners only');
+  let partnerId = req.user.id;
+  if (isAdmin(req.user) && req.query.partner_email) {
+    const p = await findUserByEmail(req.query.partner_email);
+    partnerId = p ? p.id : '__none__';
+  }
+  res.json(await computeWallet(partnerId));
+}));
+
+// POST /api/payouts/withdraw — partner requests a payout of available balance.
+const withdrawSchema = z.object({ amount: z.coerce.number().positive() });
+router.post('/withdraw', validate(withdrawSchema), asyncHandler(async (req, res) => {
+  if (req.user.role !== 'partner') throw new ApiError(403, 'Only partners can withdraw');
+  const wallet = await computeWallet(req.user.id);
+  if (req.body.amount > wallet.withdrawable) {
+    throw new ApiError(400, `Amount exceeds your withdrawable balance (RM${wallet.withdrawable})`);
+  }
+  const partner = await prisma.user.findUnique({ where: { id: req.user.id }, select: { fullName: true } });
+  const item = await prisma.payoutRecord.create({
+    data: {
+      partnerId: req.user.id,
+      partnerName: partner?.fullName || req.user.email,
+      grossEarning: req.body.amount,
+      commissionAmount: 0,
+      netPayout: req.body.amount,
+      payoutMethod: 'Bank Transfer',
+      status: 'pending',
+    },
+  });
+  res.status(201).json((await mapManyOut([item]))[0]);
+}));
+
 export default router;

@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Check, Upload, User, Wrench, MapPin, ArrowRight, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { servisaku } from '@/api/servisakuClient';
 import { Button } from '@/components/ui/button';
-import { SERVICES, CITIES } from '@/lib/services';
+import { CITIES } from '@/lib/services';
 import { toast } from 'sonner';
 
 const STEPS = [
@@ -18,6 +19,12 @@ const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function PartnerOnboarding() {
   const navigate = useNavigate();
+  // Specializations come from the live catalogue (category-level).
+  const { data: categories } = useQuery({
+    queryKey: ['onboarding-categories'],
+    queryFn: () => servisaku.catalog.getCategories(),
+    staleTime: 5 * 60 * 1000,
+  });
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
     bio: '',
@@ -138,16 +145,15 @@ export default function PartnerOnboarding() {
             <h2 className="text-lg font-bold mb-1">Your Services</h2>
             <p className="text-xs text-muted-foreground mb-4">Select all services you can provide</p>
             <div className="grid grid-cols-2 gap-2">
-              {SERVICES.map(s => {
-                const Icon = s.icon;
-                const active = form.services.includes(s.name);
+              {(categories || []).map(c => {
+                const active = form.services.includes(c.name);
                 return (
-                  <button key={s.id} onClick={() => toggle('services', s.name)}
+                  <button key={c.slug} onClick={() => toggle('services', c.name)}
                     className={`flex items-center gap-2 p-3 rounded-2xl border-2 text-left transition-all ${active ? 'border-primary bg-accent' : 'border-border bg-card'}`}>
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${s.color}`}>
-                      <Icon className="h-4 w-4" />
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-muted text-muted-foreground">
+                      <Wrench className="h-4 w-4" />
                     </div>
-                    <span className="text-xs font-medium leading-tight">{s.name}</span>
+                    <span className="text-xs font-medium leading-tight">{c.name}</span>
                     {active && <Check className="h-3.5 w-3.5 text-primary ml-auto shrink-0" />}
                   </button>
                 );

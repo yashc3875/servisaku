@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download, Send, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Download, Send, CheckCircle2, Receipt } from 'lucide-react';
 import { servisaku } from '@/api/servisakuClient';
-import { SERVICES } from '@/lib/services';
 import { calcPriceBreakdown, formatRM } from '@/lib/paymentEngine';
 import { toast } from 'sonner';
 import moment from 'moment';
@@ -24,7 +23,6 @@ export default function BookingInvoice() {
     <div className="flex justify-center pt-32"><div className="w-6 h-6 border-2 border-muted border-t-primary rounded-full animate-spin" /></div>
   );
 
-  const service = SERVICES.find(s => s.name === booking.service_type);
   const breakdown = calcPriceBreakdown(booking.price || 0, booking.discount_amount || 0);
 
   return (
@@ -87,11 +85,9 @@ export default function BookingInvoice() {
           {/* Service Details */}
           <div className="p-5 border-b border-border">
             <div className="flex items-center gap-3 mb-4">
-              {service && (
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${service.color}`}>
-                  <service.icon className="h-5 w-5" />
-                </div>
-              )}
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-muted text-muted-foreground">
+                <Receipt className="h-5 w-5" />
+              </div>
               <div>
                 <p className="font-semibold">{booking.service_type}</p>
                 <p className="text-xs text-muted-foreground">{booking.package_name} Package</p>
